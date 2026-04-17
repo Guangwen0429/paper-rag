@@ -1,0 +1,29 @@
+# 虚拟环境
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# API keys 和敏感信息
+.env
+*.key
+secrets.*
+
+# Chroma 数据库缓存
+chroma_db/
+*.sqlite3
+
+# PyCharm 配置
+.idea/
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.log
+tmp/
+
+# Paper PDFs (listed in README instead)
+papers/
+rag_paper.pdf
