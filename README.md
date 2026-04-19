@@ -4,7 +4,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 
 ## Current Status
 
-🚧 Work in progress — Day 2 of 21
+🚧 Work in progress — Day 3 of 21
 
 ## Features (so far)
 
@@ -12,7 +12,9 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 - [x] OpenAI embedding + Chroma vector store
 - [x] Semantic retrieval
 - [x] Citation-grounded answer generation
-- [ ] Multi-paper support
+- [x] Multi-paper support (8 NLP research papers)
+- [x] Cross-paper routing via semantic similarity (verified on representative queries)
+- [x] Modular architecture (loader / retriever / generator / pipeline)
 - [ ] Hybrid retrieval (BM25 + dense)
 - [ ] Reranking
 - [ ] Evaluation set and error analysis
@@ -25,20 +27,50 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 - OpenAI (gpt-4o-mini, text-embedding-3-small)
 - Chroma vector database
 
+## Project Structure
+
+    paper-rag/
+    ├── src/                       # Core modules
+    │   ├── loader.py              # PDF loading and chunking
+    │   ├── retriever.py           # Embedding and vector retrieval
+    │   ├── generator.py           # Prompt construction and LLM generation
+    │   └── pipeline.py            # End-to-end RAG pipeline
+    ├── scripts/
+    │   └── run_demo.py            # Demo script
+    ├── papers/                    # Research papers (not tracked in git)
+    ├── requirements.txt
+    └── README.md
+
 ## Setup
 
 1. Install dependencies:
 
-    pip install langchain langchain-openai langchain-community chromadb pypdf
+        pip install -r requirements.txt
 
 2. Set your OpenAI API key as an environment variable:
 
-    Windows: setx OPENAI_API_KEY "sk-your-key-here"
-    Mac/Linux: export OPENAI_API_KEY="sk-your-key-here"
+        Windows: setx OPENAI_API_KEY "sk-your-key-here"
+        Mac/Linux: export OPENAI_API_KEY="sk-your-key-here"
 
-3. Run:
+3. Place PDF papers in the `papers/` directory.
 
-    python day2_rag.py
+## Quick Start
+
+After setup, run the demo script:
+
+    python scripts/run_demo.py
+
+This will load all PDFs in `papers/`, build a vector index, and answer four demo questions with citations.
+
+## Usage
+
+For custom use in your own code:
+
+    from src.pipeline import RAGPipeline
+
+    rag = RAGPipeline(papers_dir="papers", k=3)
+    result = rag.ask("What is retrieval-augmented generation?")
+    rag.pretty_print(result)
 
 ## Author
 
