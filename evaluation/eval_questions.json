@@ -1,0 +1,50 @@
+[
+  {
+    "id": "Q01",
+    "category": "single_fact",
+    "question": "What is the hidden size (embedding dimension) of BERT-base?",
+    "expected_answer_keywords": ["768"],
+    "expected_source_files": ["02_bert.pdf"],
+    "notes": "BERT paper Section 3.1: BERT_BASE (L=12, H=768, A=12, Total Parameters=110M)"
+  },
+  {
+    "id": "Q02",
+    "category": "single_fact",
+    "question": "How many attention heads does the base Transformer model use?",
+    "expected_answer_keywords": ["8"],
+    "expected_source_files": ["01_transformer.pdf"],
+    "notes": "Transformer paper Section 3.2.2: 'we employ h = 8 parallel attention layers, or heads'. Confirmed in Table 3 base row."
+  },
+  {
+    "id": "Q03",
+    "category": "single_fact",
+    "question": "What is the model dimension (d_model) of the base Transformer?",
+    "expected_answer_keywords": ["512"],
+    "expected_source_files": ["01_transformer.pdf"],
+    "notes": "Transformer paper Section 3.1, Section 3.3, and Table 3 base row: d_model = 512."
+  },
+  {
+    "id": "Q04",
+    "category": "single_fact",
+    "question": "How many parameters does the largest GPT-3 model (GPT-3 175B) have?",
+    "expected_answer_keywords": ["175"],
+    "expected_source_files": ["04_gpt3.pdf"],
+    "notes": "GPT-3 paper Table 2.1: GPT-3 175B or 'GPT-3' has 175.0B parameters."
+  },
+  {
+    "id": "Q05",
+    "category": "single_fact",
+    "question": "What is the largest model size in the LLaMA 2 family?",
+    "expected_answer_keywords": ["70"],
+    "expected_source_files": ["08_llama2.pdf"],
+    "notes": "LLaMA 2 paper Introduction: 'LLAMA 2 and LLAMA 2-CHAT, at scales up to 70B parameters'."
+  },
+  {
+    "id": "Q06",
+    "category": "single_fact",
+    "question": "What architecture does DPR use as its question and passage encoder?",
+    "expected_answer_keywords": ["BERT"],
+    "expected_source_files": ["06_dpr.pdf"],
+    "notes": "DPR paper Section 3 Encoders: 'we use two independent BERT (Devlin et al., 2019) networks (base, uncased)'."
+  }
+]

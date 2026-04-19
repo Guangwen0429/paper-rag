@@ -4,7 +4,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 
 ## Current Status
 
-🚧 Work in progress — Day 3 of 21
+🚧 Work in progress — Day 4 of 21
 
 ## Features (so far)
 
@@ -13,11 +13,13 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 - [x] Semantic retrieval
 - [x] Citation-grounded answer generation
 - [x] Multi-paper support (8 NLP research papers)
-- [x] Cross-paper routing via semantic similarity (verified on representative queries)
+- [x] Cross-paper routing via semantic similarity
 - [x] Modular architecture (loader / retriever / generator / pipeline)
+- [x] Evaluation set (6 questions, single-fact category) with automatic metrics
+- [x] First controlled experiment (k=3 vs k=5) with chunk-level error analysis
 - [ ] Hybrid retrieval (BM25 + dense)
 - [ ] Reranking
-- [ ] Evaluation set and error analysis
+- [ ] Full evaluation set (target: 15–30 questions)
 - [ ] Streamlit UI
 
 ## Tech Stack
@@ -36,7 +38,12 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
     │   ├── generator.py           # Prompt construction and LLM generation
     │   └── pipeline.py            # End-to-end RAG pipeline
     ├── scripts/
-    │   └── run_demo.py            # Demo script
+    │   ├── run_demo.py            # Demo script
+    │   └── run_eval.py            # Automatic evaluation on eval set
+    ├── evaluation/
+    │   ├── eval_questions.json    # Manually curated QA evaluation set
+    │   ├── eval_results.json      # Latest evaluation run output
+    │   └── experiment_log.md      # Experiment notes and error analysis
     ├── papers/                    # Research papers (not tracked in git)
     ├── requirements.txt
     └── README.md
@@ -56,21 +63,31 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 
 ## Quick Start
 
-After setup, run the demo script:
+Run the demo (asks four sample questions with citations):
 
     python scripts/run_demo.py
 
-This will load all PDFs in `papers/`, build a vector index, and answer four demo questions with citations.
+Run automatic evaluation on the curated QA set:
+
+    python scripts/run_eval.py
 
 ## Usage
-
-For custom use in your own code:
 
     from src.pipeline import RAGPipeline
 
     rag = RAGPipeline(papers_dir="papers", k=3)
     result = rag.ask("What is retrieval-augmented generation?")
     rag.pretty_print(result)
+
+## Current Evaluation Snapshot (Day 4, 6 questions, baseline k=3)
+
+| Metric | Value |
+|--------|-------|
+| Keyword Hit (answer accuracy) | 50% |
+| Source Hit (routing accuracy) | 100% |
+| Avg chunk routing precision | 72% |
+
+See `evaluation/experiment_log.md` for full error analysis, failure mode categorization, and the k=3 → k=5 controlled experiment.
 
 ## Author
 
