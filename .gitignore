@@ -27,3 +27,4 @@ tmp/
 # Paper PDFs (listed in README instead)
 papers/
 rag_paper.pdf
+evaluation/eval_results.json
