@@ -4,7 +4,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 
 ## Current Status
 
-🚧 Work in progress — Day 5 of 21
+🚧 Work in progress — Day 6 of 21
 
 ## Features (so far)
 
@@ -15,11 +15,11 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 - [x] Multi-paper support (8 NLP research papers)
 - [x] Cross-paper routing via semantic similarity
 - [x] Modular architecture (loader / retriever / generator / pipeline)
-- [x] Evaluation set (6 questions, single-fact category) with automatic metrics
-- [x] First controlled experiment (k=3 vs k=5) with chunk-level error analysis
+- [x] Evaluation set (15 questions: single-fact, multi-chunk, cross-paper categories) with automatic metrics
+- [x] Controlled 4-config experiments (vector/hybrid × k=3/5) with chunk-level error analysis
 - [x] Hybrid retrieval (BM25 + dense)
 - [ ] Reranking
-- [ ] Full evaluation set (target: 15–30 questions)
+- [x] Full evaluation set (15 questions, target: 30)
 - [ ] Streamlit UI
 
 ## Tech Stack
@@ -38,13 +38,17 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
     │   ├── generator.py           # Prompt construction and LLM generation
     │   └── pipeline.py            # End-to-end RAG pipeline
     ├── scripts/
-    │   ├── run_demo.py            # Demo script
-    │   └── run_eval.py            # Automatic evaluation on eval set
+    │   ├── run_demo.py              # Demo script
+    │   ├── run_eval.py              # Multi-config evaluation (vector/hybrid × k=3/5)
+    │   ├── analyze_results.py       # Automated failure classification
+    │   ├── inspect_question.py      # Per-question chunk inspection tool
+    │   └── inspect_chunks.py        # Full chunk index search tool
     ├── evaluation/
-    │   ├── eval_questions.json    # Manually curated QA evaluation set
-    │   ├── eval_results.json      # Latest evaluation run output
-    │   └── experiment_log.md      # Experiment notes and error analysis
-    ├── papers/                    # Research papers (not tracked in git)
+    │   ├── eval_questions.json              # 15-question curated QA set
+    │   ├── eval_results_{mode}_k{k}_15q.json # Per-config evaluation results
+    │   ├── eval_summary_all.json            # Summary across all configs
+    │   ├── error_analysis_report.md         # Chunk-level analysis report
+    │   └── experiment_log.md                # Experiment notes (Days 1-6)
     ├── requirements.txt
     └── README.md
 
@@ -79,15 +83,18 @@ Run automatic evaluation on the curated QA set:
     result = rag.ask("What is retrieval-augmented generation?")
     rag.pretty_print(result)
 
-## Current Evaluation Snapshot (Day 4, 6 questions, baseline k=3)
+## Current Evaluation Snapshot (Day 6, 15 questions, 4 configs)
 
-| Metric | Value |
-|--------|-------|
-| Keyword Hit (answer accuracy) | 50% |
-| Source Hit (routing accuracy) | 100% |
-| Avg chunk routing precision | 72% |
+| Config          | Keyword Hit    | Source Hit | Routing Precision |
+| --------------- | -------------- | ---------- | ----------------- |
+| vector k=3      | 6/15 (40.0%)   | 100%       | 86.7%             |
+| vector k=5      | 8/15 (53.3%)   | 100%       | 86.7%             |
+| hybrid k=3      | 5/15 (33.3%)   | 100%       | 84.4%             |
+| **hybrid k=5**  | **9/15 (60.0%)** | **100%** | 82.7%             |
 
-See `evaluation/experiment_log.md` for full error analysis, failure mode categorization, and the k=3 → k=5 controlled experiment.
+Best config: **hybrid k=5 (60% answer accuracy)**. All 6 failed questions under this config have been verified at chunk level as retrieval failures (not generator failures), motivating chunking / query-rewriting / reranker improvements as next steps.
+
+See `evaluation/experiment_log.md` for full Day 6 analysis including 9 verified retrieval failure modes, and `evaluation/error_analysis_report.md` for chunk-level audit.
 
 ## Author
 
