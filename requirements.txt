@@ -6,3 +6,4 @@ langchain-classic
 chromadb
 pypdf
 openai
+rank_bm25
