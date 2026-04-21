@@ -1,0 +1,38 @@
+[
+  {
+    "mode": "vector",
+    "k": 3,
+    "total": 15,
+    "keyword_hit": 6,
+    "source_hit": 15,
+    "both_correct": 6,
+    "avg_routing_precision": 0.8666666666666667
+  },
+  {
+    "mode": "vector",
+    "k": 5,
+    "total": 15,
+    "keyword_hit": 8,
+    "source_hit": 15,
+    "both_correct": 8,
+    "avg_routing_precision": 0.8666666666666667
+  },
+  {
+    "mode": "hybrid",
+    "k": 3,
+    "total": 15,
+    "keyword_hit": 5,
+    "source_hit": 15,
+    "both_correct": 5,
+    "avg_routing_precision": 0.8444444444444444
+  },
+  {
+    "mode": "hybrid",
+    "k": 5,
+    "total": 15,
+    "keyword_hit": 9,
+    "source_hit": 15,
+    "both_correct": 9,
+    "avg_routing_precision": 0.8266666666666667
+  }
+]

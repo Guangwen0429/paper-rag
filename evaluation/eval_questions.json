@@ -46,5 +46,77 @@
     "expected_answer_keywords": ["BERT"],
     "expected_source_files": ["06_dpr.pdf"],
     "notes": "DPR paper Section 3 Encoders: 'we use two independent BERT (Devlin et al., 2019) networks (base, uncased)'."
+  },
+  {
+    "id": "Q07",
+    "category": "single_fact",
+    "question": "What generator (sequence-to-sequence) model does the RAG paper use?",
+    "expected_answer_keywords": ["BART"],
+    "expected_source_files": ["03_rag.pdf"],
+    "notes": "RAG paper Section 2.3 Generator: 'We use BART-large, a pre-trained seq2seq transformer with 400M parameters.' Note: DPR is the retriever; BART is the generator — do not confuse."
+  },
+  {
+    "id": "Q08",
+    "category": "single_fact",
+    "question": "What reinforcement learning algorithm is used to fine-tune InstructGPT?",
+    "expected_answer_keywords": ["PPO"],
+    "expected_source_files": ["05_instructgpt.pdf"],
+    "notes": "InstructGPT paper Section 3.1 Step 3: 'Optimize a policy against the reward model using PPO... using the PPO algorithm (Schulman et al., 2017).'"
+  },
+  {
+    "id": "Q09",
+    "category": "single_fact",
+    "question": "On which arithmetic word problem benchmark does chain-of-thought prompting show the largest improvement in the Wei et al. paper?",
+    "expected_answer_keywords": ["GSM8K"],
+    "expected_source_files": ["07_cot.pdf"],
+    "notes": "CoT paper Section 3 Arithmetic Reasoning: GSM8K is the flagship benchmark, described as 'the challenging GSM8K benchmark'. Section 3.2 Results: 'for GSM8K (the dataset with the lowest baseline performance), performance more than doubled for the largest GPT and PaLM models' — the largest quantitative gain among all arithmetic benchmarks tested."
+  },
+  {
+    "id": "Q10",
+    "category": "multi_chunk",
+    "question": "What are the two pre-training objectives used in BERT?",
+    "expected_answer_keywords": ["masked", "next sentence"],
+    "expected_source_files": ["02_bert.pdf"],
+    "notes": "BERT paper Section 3.1 Pre-training BERT: 'Task #1: Masked LM' (MLM) and 'Task #2: Next Sentence Prediction (NSP)'. Requires synthesizing two separate subsections of §3.1."
+  },
+  {
+    "id": "Q11",
+    "category": "multi_chunk",
+    "question": "What are the three model sizes released in the LLaMA 2 family?",
+    "expected_answer_keywords": ["7", "13", "70"],
+    "expected_source_files": ["08_llama2.pdf"],
+    "notes": "LLaMA 2 paper Introduction: 'We are releasing variants of Llama 2 with 7B, 13B, and 70B parameters. We have also trained 34B variants... but are not releasing.' Footnote: 34B was delayed due to insufficient red-teaming time. Table 1 lists all 4 trained sizes. Answer is 7/13/70 because the question asks about released sizes."
+  },
+  {
+    "id": "Q12",
+    "category": "multi_chunk",
+    "question": "What are the three main training steps in the InstructGPT pipeline?",
+    "expected_answer_keywords": ["supervised", "reward", "PPO"],
+    "expected_source_files": ["05_instructgpt.pdf"],
+    "notes": "InstructGPT paper Section 3.1 High-level methodology: Step 1 = supervised fine-tuning (SFT); Step 2 = reward model training; Step 3 = PPO. All three steps appear as bolded subheadings in §3.1 and are visualized in Figure 2."
+  },
+  {
+    "id": "Q13",
+    "category": "cross_paper",
+    "question": "How many total parameters does BERT-large have, and how many does the largest GPT-3 model have?",
+    "expected_answer_keywords": ["340", "175"],
+    "expected_source_files": ["02_bert.pdf", "04_gpt3.pdf"],
+    "notes": "BERT paper Section 3: 'BERT_LARGE (L=24, H=1024, A=16, Total Parameters=340M)'. GPT-3 paper Table 2.1: largest row is 'GPT-3 175B or GPT-3', 175.0B params. Requires retrieval to fetch chunks from both papers."
+  },
+  {
+    "id": "Q14",
+    "category": "cross_paper",
+    "question": "How many attention heads does the base Transformer model use, and how many does BERT-base use?",
+    "expected_answer_keywords": ["8", "12"],
+    "expected_source_files": ["01_transformer.pdf", "02_bert.pdf"],
+    "notes": "Transformer paper Section 3.2.2: base model h=8 heads. BERT paper Section 3: BERT_BASE A=12 heads. Stress-tests the Day 5 Q02 context-contamination case — i.e., when both chunks are in context, does the generator correctly attribute 8 to Transformer and 12 to BERT?"
+  },
+  {
+    "id": "Q15",
+    "category": "cross_paper",
+    "question": "What is the training task/objective of the original Transformer (Vaswani et al. 2017), and what are the pre-training objectives of BERT?",
+    "expected_answer_keywords": ["translation", "masked", "next sentence"],
+    "expected_source_files": ["01_transformer.pdf", "02_bert.pdf"],
+    "notes": "Transformer paper Abstract: 'Experiments on two machine translation tasks... 28.4 BLEU on the WMT 2014 English-to-German translation task.' BERT paper Section 3.1: pre-trained with MLM and NSP. The two halves of the answer are fully non-overlapping across sources — Transformer paper does not discuss MLM/NSP, and BERT paper does not discuss WMT translation. This is the strictest cross-paper routing test in the eval set."
   }
 ]
