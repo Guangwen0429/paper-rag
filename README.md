@@ -4,7 +4,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 
 ## Current Status
 
-🚧 Work in progress — Day 4 of 21
+🚧 Work in progress — Day 5 of 21
 
 ## Features (so far)
 
@@ -17,7 +17,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 - [x] Modular architecture (loader / retriever / generator / pipeline)
 - [x] Evaluation set (6 questions, single-fact category) with automatic metrics
 - [x] First controlled experiment (k=3 vs k=5) with chunk-level error analysis
-- [ ] Hybrid retrieval (BM25 + dense)
+- [x] Hybrid retrieval (BM25 + dense)
 - [ ] Reranking
 - [ ] Full evaluation set (target: 15–30 questions)
 - [ ] Streamlit UI
