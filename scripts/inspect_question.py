@@ -17,16 +17,25 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 EVAL_DIR = project_root / "evaluation"
+# 每个 config: (mode, k, chunk_size)
+# Day 6 用 cs=500, Day 7 用 cs=250
+# 默认对比 Day 7 的 4 组 (cs=250)
 CONFIGS = [
-    ("vector", 3),
-    ("vector", 5),
-    ("hybrid", 3),
-    ("hybrid", 5),
+    ("vector", 3, 250),
+    ("vector", 5, 250),
+    ("hybrid", 3, 250),
+    ("hybrid", 5, 250),
 ]
 
 
-def load_results(mode: str, k: int) -> List[Dict[str, Any]]:
-    path = EVAL_DIR / f"eval_results_{mode}_k{k}_15q.json"
+def load_results(mode: str, k: int, chunk_size: int = 250) -> List[Dict[str, Any]]:
+    # Day 6 文件名（无 cs）作为兼容回退，Day 7 用带 cs 的新文件名
+    if chunk_size == 500:
+        # Day 6 文件名
+        path = EVAL_DIR / f"eval_results_{mode}_k{k}_15q.json"
+    else:
+        # Day 7+ 文件名
+        path = EVAL_DIR / f"eval_results_{mode}_k{k}_cs{chunk_size}_15q.json"
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -63,8 +72,8 @@ def inspect_question(qid: str):
     question_text = None
     expected_keywords = None
     expected_files = None
-    for mode, k in CONFIGS:
-        results = load_results(mode, k)
+    for mode, k, chunk_size in CONFIGS:
+        results = load_results(mode, k, chunk_size)
         q = next((r for r in results if r["id"] == qid), None)
         if q is None:
             print(f"[!] {qid} not found in {mode} k={k}")
@@ -83,7 +92,7 @@ def inspect_question(qid: str):
     # Per-config breakdown
     for (mode, k), r in all_configs.items():
         print("\n" + "─" * 75)
-        print(f"  CONFIG: {mode}  k={k}")
+        print(f"  CONFIG: {mode}  k={k}  cs={chunk_size}")
         print("─" * 75)
         kw_mark = "✓" if r["keyword_hit"] else "✗"
         print(f"  Keyword Hit: [{kw_mark}]    Source Hit: [{'✓' if r['source_hit'] else '✗'}]    "

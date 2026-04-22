@@ -4,7 +4,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 
 ## Current Status
 
-🚧 Work in progress — Day 6 of 21
+🚧 Work in progress — Day 7 of 21
 
 ## Features (so far)
 
@@ -17,6 +17,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 - [x] Modular architecture (loader / retriever / generator / pipeline)
 - [x] Evaluation set (15 questions: single-fact, multi-chunk, cross-paper categories) with automatic metrics
 - [x] Controlled 4-config experiments (vector/hybrid × k=3/5) with chunk-level error analysis
+- [x] Chunking ablation (chunk_size 250 vs 500) with context-fragmentation analysis
 - [x] Hybrid retrieval (BM25 + dense)
 - [ ] Reranking
 - [x] Full evaluation set (15 questions, target: 30)
@@ -44,11 +45,13 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
     │   ├── inspect_question.py      # Per-question chunk inspection tool
     │   └── inspect_chunks.py        # Full chunk index search tool
     ├── evaluation/
-    │   ├── eval_questions.json              # 15-question curated QA set
-    │   ├── eval_results_{mode}_k{k}_15q.json # Per-config evaluation results
-    │   ├── eval_summary_all.json            # Summary across all configs
-    │   ├── error_analysis_report.md         # Chunk-level analysis report
-    │   └── experiment_log.md                # Experiment notes (Days 1-6)
+    │   ├── eval_questions.json                          # 15-question curated QA set
+    │   ├── eval_results_{mode}_k{k}_15q.json            # Day 6 results (cs=500)
+    │   ├── eval_results_{mode}_k{k}_cs250_15q.json      # Day 7 results (cs=250)
+    │   ├── eval_summary_all.json                        # Day 6 summary
+    │   ├── eval_summary_all_day7.json                   # Day 7 summary
+    │   ├── error_analysis_report.md                     # Chunk-level analysis report
+    │   └── experiment_log.md                            # Experiment notes (Days 1-7)
     ├── requirements.txt
     └── README.md
 
@@ -83,18 +86,29 @@ Run automatic evaluation on the curated QA set:
     result = rag.ask("What is retrieval-augmented generation?")
     rag.pretty_print(result)
 
-## Current Evaluation Snapshot (Day 6, 15 questions, 4 configs)
+## Current Evaluation Snapshot (Day 7, 15 questions, 4 configs × 2 chunk sizes)
 
-| Config          | Keyword Hit    | Source Hit | Routing Precision |
-| --------------- | -------------- | ---------- | ----------------- |
-| vector k=3      | 6/15 (40.0%)   | 100%       | 86.7%             |
-| vector k=5      | 8/15 (53.3%)   | 100%       | 86.7%             |
-| hybrid k=3      | 5/15 (33.3%)   | 100%       | 84.4%             |
-| **hybrid k=5**  | **9/15 (60.0%)** | **100%** | 82.7%             |
+**Day 6 baseline (chunk_size=500)**:
 
-Best config: **hybrid k=5 (60% answer accuracy)**. All 6 failed questions under this config have been verified at chunk level as retrieval failures (not generator failures), motivating chunking / query-rewriting / reranker improvements as next steps.
+| Config          | Keyword Hit      | Source Hit | Routing Precision |
+| --------------- | ---------------- | ---------- | ----------------- |
+| vector k=3      | 6/15 (40.0%)     | 100%       | 86.7%             |
+| vector k=5      | 8/15 (53.3%)     | 100%       | 86.7%             |
+| hybrid k=3      | 5/15 (33.3%)     | 100%       | 84.4%             |
+| **hybrid k=5**  | **9/15 (60.0%)** | **100%**   | 82.7%             |
 
-See `evaluation/experiment_log.md` for full Day 6 analysis including 9 verified retrieval failure modes, and `evaluation/error_analysis_report.md` for chunk-level audit.
+**Day 7 ablation (chunk_size=250)**:
+
+| Config          | Keyword Hit      | Source Hit | Routing Precision | Δ vs Day 6 |
+| --------------- | ---------------- | ---------- | ----------------- | ---------- |
+| vector k=3      | 4/15 (26.7%)     | 100%       | 86.7%             | −2         |
+| vector k=5      | 6/15 (40.0%)     | 100%       | 88.0%             | −2         |
+| hybrid k=3      | 3/15 (20.0%)     | 100%       | 75.6%             | −2         |
+| hybrid k=5      | 6/15 (40.0%)     | 100%       | 73.3%             | −3         |
+
+**Best config remains hybrid k=5 at chunk_size=500 (60% answer accuracy)**. The cs=500 → cs=250 ablation regressed all four configs by 2–3 questions, revealing that reducing chunk_size trades "embedding purity on short key sentences" for "context completeness + BM25 stability" — a net-negative trade on academic-paper QA.
+
+See `evaluation/experiment_log.md` for the full Day 6–7 analysis (12 verified retrieval failure modes, including 4 new ones introduced by cs=250), and `evaluation/error_analysis_report.md` for chunk-level audit.
 
 ## Author
 

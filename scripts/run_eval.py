@@ -31,14 +31,13 @@ from src.generator import generate_answer
 # 配置：要跑的实验组合
 # ============================================================
 EXPERIMENTS = [
-    ("vector", 3),
-    ("vector", 5),
-    ("hybrid", 3),
-    ("hybrid", 5),
+    # (retrieval_mode, k, chunk_size, chunk_overlap)
+    ("vector", 3, 250, 50),
+    ("vector", 5, 250, 50),
+    ("hybrid", 3, 250, 50),
+    ("hybrid", 5, 250, 50),
 ]
 PAPERS_DIR = "papers"
-CHUNK_SIZE = 500
-CHUNK_OVERLAP = 50
 
 
 # ============================================================
@@ -152,9 +151,9 @@ def evaluate_single(
 # 跑一组实验
 # ============================================================
 
-def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k):
+def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k, chunk_size, chunk_overlap):
     print("\n" + "#" * 70)
-    print(f"# EXPERIMENT: mode={mode}, k={k}")
+    print(f"# EXPERIMENT: mode={mode}, k={k}, chunk_size={chunk_size}, chunk_overlap={chunk_overlap}")
     print("#" * 70)
 
     results = []
@@ -181,6 +180,8 @@ def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k):
     summary = {
         "mode": mode,
         "k": k,
+        "chunk_size": chunk_size,
+        "chunk_overlap": chunk_overlap,
         "total": total,
         "keyword_hit": keyword_correct,
         "source_hit": source_correct,
@@ -189,7 +190,7 @@ def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k):
     }
 
     print("\n" + "=" * 70)
-    print(f"OVERALL METRICS (mode={mode}, k={k})")
+    print(f"OVERALL METRICS (mode={mode}, k={k}, chunk_size={chunk_size})")
     print("=" * 70)
     print(f"Total questions:              {total}")
     print(f"Keyword Hit (answer correct): {keyword_correct}/{total}  ({keyword_correct/total*100:.1f}%)")
@@ -198,9 +199,9 @@ def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k):
     print(f"Avg chunk routing precision:  {avg_routing_precision*100:.1f}%")
     print("=" * 70)
 
-    # 保存详细结果
+    # 保存详细结果（文件名包含 chunk_size，避免覆盖不同参数的结果）
     n_questions = len(results)
-    output_filename = f"eval_results_{mode}_k{k}_{n_questions}q.json"
+    output_filename = f"eval_results_{mode}_k{k}_cs{chunk_size}_{n_questions}q.json"
     output_file = project_root / "evaluation" / output_filename
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
@@ -224,34 +225,52 @@ def main():
     print(f"Experiments to run: {EXPERIMENTS}")
     print("=" * 70)
 
-    # 2. 加载 + 切分 + 建两种索引（只做一次，所有实验共用）
+    # 2. 按 (chunk_size, chunk_overlap) 分组建索引（相同参数只建一次，共用）
     docs = load_all_pdfs(PAPERS_DIR)
-    chunks = split_into_chunks(docs, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
-    vectorstore = build_vectorstore(chunks)
-    bm25, _ = build_bm25_index(chunks)
+
+    # 用 dict 缓存已构建的索引，key = (chunk_size, chunk_overlap)
+    index_cache = {}
+
+    def get_or_build_index(chunk_size, chunk_overlap):
+        key = (chunk_size, chunk_overlap)
+        if key in index_cache:
+            return index_cache[key]
+
+        print(f"\n{'*' * 70}")
+        print(f"* Building index for chunk_size={chunk_size}, chunk_overlap={chunk_overlap}")
+        print(f"{'*' * 70}")
+        chunks = split_into_chunks(docs, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        vectorstore = build_vectorstore(chunks)
+        bm25, _ = build_bm25_index(chunks)
+        index_cache[key] = (vectorstore, bm25, chunks)
+        return vectorstore, bm25, chunks
 
     # 3. 依次跑每组实验
     all_summaries = []
-    for mode, k in EXPERIMENTS:
-        summary = run_one_experiment(vectorstore, bm25, chunks, questions, mode, k)
+    for mode, k, chunk_size, chunk_overlap in EXPERIMENTS:
+        vectorstore, bm25, chunks = get_or_build_index(chunk_size, chunk_overlap)
+        summary = run_one_experiment(
+            vectorstore, bm25, chunks, questions,
+            mode, k, chunk_size, chunk_overlap,
+        )
         all_summaries.append(summary)
 
     # 4. 最后打印对比表
     print("\n" + "#" * 70)
     print("# FINAL COMPARISON ACROSS ALL EXPERIMENTS")
     print("#" * 70)
-    print(f"\n{'Config':<20} {'Keyword Hit':<20} {'Source Hit':<20} {'Routing Prec':<15}")
-    print("-" * 75)
+    print(f"\n{'Config':<28} {'Keyword Hit':<20} {'Source Hit':<20} {'Routing Prec':<15}")
+    print("-" * 83)
     for s in all_summaries:
-        config = f"{s['mode']} k={s['k']}"
+        config = f"{s['mode']} k={s['k']} cs={s['chunk_size']}"
         kw = f"{s['keyword_hit']}/{s['total']} ({s['keyword_hit']/s['total']*100:.1f}%)"
         src = f"{s['source_hit']}/{s['total']} ({s['source_hit']/s['total']*100:.1f}%)"
         prec = f"{s['avg_routing_precision']*100:.1f}%"
-        print(f"{config:<20} {kw:<20} {src:<20} {prec:<15}")
-    print("=" * 75)
+        print(f"{config:<28} {kw:<20} {src:<20} {prec:<15}")
+    print("=" * 83)
 
-    # 保存汇总表
-    summary_file = project_root / "evaluation" / "eval_summary_all.json"
+    # 保存汇总表（文件名包含日期标记，避免覆盖 Day 6 的汇总）
+    summary_file = project_root / "evaluation" / "eval_summary_all_day7.json"
     with open(summary_file, "w", encoding="utf-8") as f:
         json.dump(all_summaries, f, indent=2, ensure_ascii=False)
     print(f"\nSummary saved to: {summary_file.relative_to(project_root)}")

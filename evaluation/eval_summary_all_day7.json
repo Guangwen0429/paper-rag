@@ -1,0 +1,46 @@
+[
+  {
+    "mode": "vector",
+    "k": 3,
+    "chunk_size": 250,
+    "chunk_overlap": 50,
+    "total": 15,
+    "keyword_hit": 4,
+    "source_hit": 15,
+    "both_correct": 4,
+    "avg_routing_precision": 0.8666666666666667
+  },
+  {
+    "mode": "vector",
+    "k": 5,
+    "chunk_size": 250,
+    "chunk_overlap": 50,
+    "total": 15,
+    "keyword_hit": 6,
+    "source_hit": 15,
+    "both_correct": 6,
+    "avg_routing_precision": 0.8800000000000001
+  },
+  {
+    "mode": "hybrid",
+    "k": 3,
+    "chunk_size": 250,
+    "chunk_overlap": 50,
+    "total": 15,
+    "keyword_hit": 3,
+    "source_hit": 15,
+    "both_correct": 3,
+    "avg_routing_precision": 0.7555555555555554
+  },
+  {
+    "mode": "hybrid",
+    "k": 5,
+    "chunk_size": 250,
+    "chunk_overlap": 50,
+    "total": 15,
+    "keyword_hit": 6,
+    "source_hit": 15,
+    "both_correct": 6,
+    "avg_routing_precision": 0.7333333333333333
+  }
+]
