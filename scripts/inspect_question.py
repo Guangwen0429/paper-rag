@@ -21,20 +21,27 @@ EVAL_DIR = project_root / "evaluation"
 # Day 6 用 cs=500, Day 7 用 cs=250
 # 默认对比 Day 7 的 4 组 (cs=250)
 # Day 8 Exp H: compare hybrid (baseline) vs rerank (new) at chunk_size=500
+# Day 9 Exp J: weighted fusion alpha scan at k=5, cs=500
+# 每个 config: (mode, k, chunk_size, alpha)
 CONFIGS = [
-    ("hybrid", 3, 500),
-    ("hybrid", 5, 500),
-    ("rerank", 3, 500),
-    ("rerank", 5, 500),
+    ("rerank_weighted", 5, 500, 0.0),   # = pure hybrid
+    ("rerank_weighted", 5, 500, 0.3),
+    ("rerank_weighted", 5, 500, 0.5),
+    ("rerank_weighted", 5, 500, 0.7),   # best
+    ("rerank_weighted", 5, 500, 1.0),   # = pure rerank
 ]
 
 
-def load_results(mode: str, k: int, chunk_size: int = 500) -> List[Dict[str, Any]]:
-    # Day 8+ 文件名规范：所有结果都带 cs{size} 后缀
-    path = EVAL_DIR / f"eval_results_{mode}_k{k}_cs{chunk_size}_15q.json"
-    # Day 6 旧文件名兼容回退（hybrid/vector cs=500 有不带 cs 的旧版本）
-    if not path.exists() and chunk_size == 500:
-        path = EVAL_DIR / f"eval_results_{mode}_k{k}_15q.json"
+def load_results(mode: str, k: int, chunk_size: int = 500, alpha: float = None) -> List[Dict[str, Any]]:
+    # Day 9+: rerank_weighted 模式文件名带 alpha 后缀
+    if mode == "rerank_weighted" and alpha is not None:
+        path = EVAL_DIR / f"eval_results_{mode}_k{k}_cs{chunk_size}_a{alpha}_15q.json"
+    else:
+        # Day 8 及之前的文件名（hybrid, rerank, vector 等）
+        path = EVAL_DIR / f"eval_results_{mode}_k{k}_cs{chunk_size}_15q.json"
+        # Day 6 旧文件名兼容回退
+        if not path.exists() and chunk_size == 500:
+            path = EVAL_DIR / f"eval_results_{mode}_k{k}_15q.json"
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -71,13 +78,13 @@ def inspect_question(qid: str):
     question_text = None
     expected_keywords = None
     expected_files = None
-    for mode, k, chunk_size in CONFIGS:
-        results = load_results(mode, k, chunk_size)
+    for mode, k, chunk_size, alpha in CONFIGS:
+        results = load_results(mode, k, chunk_size, alpha)
         q = next((r for r in results if r["id"] == qid), None)
         if q is None:
-            print(f"[!] {qid} not found in {mode} k={k}")
+            print(f"[!] {qid} not found in {mode} k={k} cs={chunk_size} a={alpha}")
             return
-        all_configs[(mode, k, chunk_size)] = q
+        all_configs[(mode, k, chunk_size, alpha)] = q
         if question_text is None:
             question_text = q["question"]
             expected_keywords = q["expected_keywords"]
@@ -89,9 +96,9 @@ def inspect_question(qid: str):
     print(f"Expected source files: {expected_files}")
 
     # Per-config breakdown
-    for (mode, k, cs), r in all_configs.items():
+    for (mode, k, cs, alpha), r in all_configs.items():
         print("\n" + "─" * 75)
-        print(f"  CONFIG: {mode}  k={k}  cs={cs}")
+        print(f"  CONFIG: {mode}  k={k}  cs={cs}  α={alpha}")
         print("─" * 75)
         kw_mark = "✓" if r["keyword_hit"] else "✗"
         print(f"  Keyword Hit: [{kw_mark}]    Source Hit: [{'✓' if r['source_hit'] else '✗'}]    "

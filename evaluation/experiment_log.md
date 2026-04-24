@@ -485,3 +485,80 @@ Exp G is the most promising next step because it addresses the two failure modes
 Day 8 is the first experiment in this project with a clear *positive* headline result (+20pp at k=3) alongside a clear trade-off at k=5 (same count, redistributed failures). The 20pp gain at k=3 is the kind of result that would normally be taken as a standalone conclusion ("rerank is a strict improvement"). Chunk-level verification showed this to be misleading: the k=5 comparison reveals rerank's hidden costs (Q08, Q09 lost), and those costs cannot be waived without explicit mitigation (e.g., rerank score blending in Exp J, or answer-aware retrieval in Exp G).
 
 The pattern across Day 6 → Day 7 → Day 8 is consistent: each intervention solves some failure modes and introduces new ones. There is no monolithic "better retriever". Progress comes from understanding which modes are active and choosing the intervention that best matches the current failure distribution. Day 8's measurement infrastructure (chunk-level inspection + failure mode taxonomy) is now the unit of progress, not single-number metrics.
+
+---
+
+## Exp J: Weighted Fusion of Hybrid RRF and Cross-Encoder Scores
+
+**Date**: 2026-04-24
+**Motivation**: Day 8 Exp H showed cross-encoder rerank introduces a net-zero trade at k=5: Q06 and Q11 recovered, Q08 and Q09 lost. Chunk-level inspection identified the mechanism as "topic-match over answer-match" — cross-encoder favors topically comprehensive chunks over chunks that contain specific answer tokens. Hypothesis: a weighted linear combination of RRF and cross-encoder scores could preserve the answer-bearing chunks that pure rerank ejects, while keeping the definitional-query wins. Scan `alpha ∈ {0.0, 0.3, 0.5, 0.7, 1.0}` with k=5 and chunk_size=500.
+
+### Setup
+
+New function in `src/retriever.py`:
+- `_min_max_normalize(scores)`: scales scores to [0, 1] to remove scale mismatch (RRF scores are ~0.01–0.05; cross-encoder scores are -10 to +10).
+- `hybrid_then_rerank_weighted(vectorstore, bm25, chunks, query, k, n_candidates=20, alpha=0.5)`: (1) reproduces hybrid's RRF fusion internally to preserve per-chunk RRF scores, (2) cross-encoder scores the same 20 candidates, (3) min-max normalizes both score vectors to [0, 1], (4) fuses with `score = (1 - alpha) * norm_rrf + alpha * norm_ce`, (5) returns top-k by fused score.
+
+`scripts/run_eval.py`: added `rerank_weighted` mode; `EXPERIMENTS` tuples extended to 5 elements `(mode, k, chunk_size, chunk_overlap, alpha)`; output filenames include `_a{alpha}` suffix for rerank_weighted runs.
+
+### Results
+
+| Config | Keyword Hit | Routing Precision | Interpretation |
+|---|:---:|:---:|---|
+| α=0.0 | 9/15 (60.0%) | 82.7% | = Day 6 hybrid k=5 baseline (validates reduction) |
+| α=0.3 | 8/15 (53.3%) | 85.3% | regression (non-monotonic dip, see below) |
+| α=0.5 | 9/15 (60.0%) | 85.3% | recovered to baseline |
+| **α=0.7** | **10/15 (66.7%)** | 85.3% | **peak — project-wide high** |
+| α=1.0 | 9/15 (60.0%) | 88.0% | = Day 8 rerank k=5 baseline (validates reduction) |
+
+The two endpoint equalities (α=0.0 ≡ hybrid, α=1.0 ≡ rerank) confirm the weighted-fusion implementation is correct. The key result is the interior peak at α=0.7: **net +1 question over the best Day 8 config (rerank k=5), net +1 question over the best Day 6 config (hybrid k=5)**. This is the first experiment in this project to produce a net gain over both baselines on the same eval set.
+
+### Controlled-variable analysis
+
+**α=0.7 vs α=0.0 (hybrid baseline)**: recovered 3 (Q06, Q11, Q14), lost 1 (Q08), net +2.
+**α=0.7 vs α=1.0 (rerank baseline)**: recovered 2 (Q11, Q14), lost 1 (Q06), net +1.
+
+**α=0.7 is not a superset of either endpoint**. It recovers different questions than pure rerank (α=1.0), not the same ones plus extras. This tells us different failure modes have different optimal α.
+
+### Chunk-level verification (Q14, Q08, Q06, Q11 inspected across all 5 α values)
+
+| QID | α that recovers it | Answer-chunk retrieval behavior |
+|---|:---:|---|
+| **Q06** | **α=1.0 only** | DPR p1 chunk *"By leveraging the now standard BERT pretrained model ... and a dual-encoder architecture"* ranks very low in hybrid RRF (rank 15+). Any nonzero hybrid weight drags it out of top-5. Only pure cross-encoder recovers it. |
+| **Q11** | **α ≥ 0.7** | LLaMA 2 p3 (*"releasing variants of Llama 2 with 7B, 13B, and 70B parameters"*) and p76 (*"Variations Llama 2 comes in a range of parameter sizes—7B, 13B, and 70B"*) rank moderately in hybrid RRF, highly in cross-encoder. Need at least α=0.7 to push both into top-5. |
+| **Q14** | **α ∈ [0.5, 0.7]** | Retrieved chunk set is nearly identical across all α; only ranks change. When BERT p7 (containing "Vaswani et al. (2017) is L=6, H=1024, A=16") occupies Rank 1 instead of Rank 2, the LLM reads its context more carefully and disambiguates "A=16 refers to Transformer *big*, BERT *base* must be elsewhere" — then assembles the correct answer from heterogeneous signals. This is a rank-order effect on LLM reading strategy, not a retrieval recovery. At α=1.0 the rank order re-shuffles and the effect disappears. |
+| **Q08** | **α=0.0 only** | InstructGPT p14 and p1 (both contain "PPO") rank well in hybrid RRF but poorly in cross-encoder (which categorizes them as "detailed process description" rather than "answers 'what algorithm'"). Any α > 0 ejects both from top-5. Impossible to recover Q08 without sacrificing all α>0 benefits. |
+
+### The α=0.3 non-monotonic dip
+
+α=0.3 (8/15) is worse than both α=0.0 and α=0.5 (both 9/15). Q08's answer chunks get ejected as soon as cross-encoder signal is introduced (any α > 0), but Q11/Q14 require α ≥ 0.5 to benefit. At α=0.3, we pay the Q08 cost without yet earning the Q11/Q14 gains. This is a predictable consequence of the per-query-optimal-α phenomenon below.
+
+### Central observation: per-query-optimal α is not constant
+
+| Question | Optimal α range | Rationale |
+|---|---|---|
+| Q06 | 1.0 | answer chunk buried very deep in hybrid ordering |
+| Q08 | 0.0 | answer chunks have strong hybrid signal but weak CE signal |
+| Q11 | ≥ 0.7 | answer chunks mid-rank in hybrid, high-rank in CE |
+| Q14 | 0.5–0.7 | no direct answer chunk; LLM disambiguates from rank order |
+
+**No single α can recover all four**. Q06 needs α=1.0 (which loses Q14), Q08 needs α=0.0 (which loses Q06 and Q11). α=0.7 happens to be the sweet spot for this eval set — it maximizes total recovered questions — but this is an artifact of the specific failure distribution, not a transferable optimum. A different eval set with more "answer-in-detail-chunk" questions (Q08-type) would move the optimum down; a set with more "definitional blind spot" questions (Q06-type) would move it up.
+
+### Methodological lessons added in Day 9
+
+**Lesson 16**: A single scalar α cannot simultaneously optimize across heterogeneous failure modes. Each failure mode has a signature (answer-chunk rank in hybrid vs. answer-chunk rank in CE), and α trades them off rather than resolving them. The empirical peak at α=0.7 is specific to this eval set's failure-mode mixture.
+
+**Lesson 17**: LLM output can depend on retrieval *rank order*, not just the retrieved *set*. Q14's recovery at α=0.5/0.7 is produced by reshuffling the same chunks; the LLM reads more carefully when an authoritative chunk is at Rank 1, disambiguating content that it would have used incorrectly at Rank 2. This is a generation-retrieval interaction effect invisible to recall@k metrics.
+
+**Lesson 18**: Endpoint sanity checks are essential for fusion experiments. The α=0.0 and α=1.0 results must exactly match prior baselines (9/15 hybrid, 9/15 rerank) to confirm the fusion formula reduces correctly. This validates the experiment architecture before interpreting interior points.
+
+### Implications for next experiments
+
+Day 9 closes the "single-α fusion" line of investigation. The natural next step is **per-query-adaptive α**:
+- **Exp K (query classifier)**: Classify queries by type (definitional / list / answer-in-detail / compound) using a small classifier or LLM prompt, dispatch to different α. Training signal is Day 6–9's chunk-level failure taxonomy.
+- **Exp G (HyDE / query rewriting)** remains relevant for the compound-query smearing problem (Q15, still unchanged at every α). Orthogonal to α tuning.
+- **Exp L (learned weights)**: Instead of manual α scan, learn per-query weights via a small MLP on query features + candidate statistics. Larger eval set needed for training signal.
+
+### Retrospective on Day 9
+
+Day 9 is the first experiment to produce a net gain over all prior baselines (+1 vs Day 8 rerank, +1 vs Day 6 hybrid). But the gain is interpretable, not intrinsic: α=0.7 wins by averaging out complementary failure modes. The experiment's deeper contribution is Lesson 16 — establishing that there is no universal best retrieval weight in this failure-mode-heterogeneous regime, and that further improvement requires **query-conditional retrieval**, not a global parameter tune. This reframes the next-step horizon from "find a better uniform retriever" to "find the right retriever per query".

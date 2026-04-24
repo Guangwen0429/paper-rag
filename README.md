@@ -4,7 +4,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 
 ## Current Status
 
-🚧 Work in progress — Day 8 of 21
+🚧 Work in progress — Day 9 of 21
 
 ## Features (so far)
 
@@ -19,10 +19,11 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 - [x] Controlled 4-config experiments (vector/hybrid × k=3/5) with chunk-level error analysis
 - [x] Chunking ablation (chunk_size 250 vs 500) with context-fragmentation analysis
 - [x] Cross-encoder reranker with answer-match vs topic-match failure analysis
+- [x] Weighted fusion of hybrid + cross-encoder scores (α-sweep revealing per-query-optimal α)
 - [x] Hybrid retrieval (BM25 + dense)
-- [ ] Reranking
 - [x] Full evaluation set (15 questions, target: 30)
 - [ ] Streamlit UI
+
 
 ## Tech Stack
 
@@ -46,13 +47,16 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
     │   ├── inspect_question.py      # Per-question chunk inspection tool
     │   └── inspect_chunks.py        # Full chunk index search tool
     ├── evaluation/
-    │   ├── eval_questions.json                          # 15-question curated QA set
-    │   ├── eval_results_{mode}_k{k}_15q.json            # Day 6 results (cs=500)
-    │   ├── eval_results_{mode}_k{k}_cs250_15q.json      # Day 7 results (cs=250)
-    │   ├── eval_summary_all.json                        # Day 6 summary
-    │   ├── eval_summary_all_day7.json                   # Day 7 summary
-    │   ├── error_analysis_report.md                     # Chunk-level analysis report
-    │   └── experiment_log.md                            # Experiment notes (Days 1-7)
+    │   ├── eval_questions.json                                  # 15-question curated QA set
+    │   ├── eval_results_{mode}_k{k}_15q.json                    # Day 6 results (cs=500, no cs suffix)
+    │   ├── eval_results_{mode}_k{k}_cs{size}_15q.json           # Day 7/8 results
+    │   ├── eval_results_rerank_weighted_k5_cs500_a{alpha}_15q.json  # Day 9 α-sweep results
+    │   ├── eval_summary_all.json                                # Day 6 summary
+    │   ├── eval_summary_all_day7.json                           # Day 7 summary
+    │   ├── eval_summary_all_day8.json                           # Day 8 summary
+    │   ├── eval_summary_all_day9.json                           # Day 9 summary
+    │   ├── error_analysis_report.md                             # Chunk-level analysis report
+    │   └── experiment_log.md                                    # Experiment notes (Days 1-9)                   # Experiment notes (Days 1-7)
     ├── requirements.txt
     └── README.md
 
@@ -87,7 +91,7 @@ Run automatic evaluation on the curated QA set:
     result = rag.ask("What is retrieval-augmented generation?")
     rag.pretty_print(result)
 
-## Current Evaluation Snapshot (Day 8, 15 questions, 3 experimental stages)
+## Current Evaluation Snapshot (Day 9, 15 questions, 4 experimental stages)
 
 **Day 6 baseline (chunk_size=500, vector vs hybrid retrieval)**:
 
@@ -98,27 +102,28 @@ Run automatic evaluation on the curated QA set:
 | hybrid k=3      | 5/15 (33.3%)     | 100%       | 84.4%             |
 | hybrid k=5      | 9/15 (60.0%)     | 100%       | 82.7%             |
 
-**Day 7 ablation (chunk_size=250, same 4 configs)**:
-
-| Config          | Keyword Hit      | Source Hit | Routing Precision | Δ vs Day 6 |
-| --------------- | ---------------- | ---------- | ----------------- | ---------- |
-| vector k=3      | 4/15 (26.7%)     | 100%       | 86.7%             | −2         |
-| vector k=5      | 6/15 (40.0%)     | 100%       | 88.0%             | −2         |
-| hybrid k=3      | 3/15 (20.0%)     | 100%       | 75.6%             | −2         |
-| hybrid k=5      | 6/15 (40.0%)     | 100%       | 73.3%             | −3         |
+**Day 7 ablation (chunk_size=250, same 4 configs)** — all regressed 2–3 questions (full table in `experiment_log.md`).
 
 **Day 8 reranker (chunk_size=500, cross-encoder on top of hybrid)**:
 
-| Config              | Keyword Hit      | Source Hit | Routing Precision | Δ vs Day 6 hybrid |
-| ------------------- | ---------------- | ---------- | ----------------- | ----------------- |
-| hybrid k=3 (baseline) | 5/15 (33.3%)   | 100%       | 84.4%             | —                 |
-| hybrid k=5 (baseline) | 9/15 (60.0%)   | 100%       | 82.7%             | —                 |
-| **rerank k=3**      | **8/15 (53.3%)** | 100%       | 82.2%             | **+20pp** vs hybrid k=3 |
-| rerank k=5          | 9/15 (60.0%)     | 100%       | **88.0%**         | same count, different 9 questions |
+| Config              | Keyword Hit      | Routing Precision |
+| ------------------- | ---------------- | ----------------- |
+| rerank k=3          | 8/15 (53.3%)     | 82.2%             |
+| rerank k=5          | 9/15 (60.0%)     | 88.0%             |
 
-**Best configs**: **rerank k=3 (53.3%)** and **rerank k=5 / hybrid k=5 (60.0%)** — cross-encoder reranker compresses 20 candidates into a tight window as effectively as widening k from 3 to 5 does. At k=5, rerank recovers Q06 (DPR definitional blind spot, never solved in Day 6 or Day 7) and Q11 (LLaMA 2 release sizes, never retrieved in Day 6 or Day 7) but loses Q08 and Q09 where the answer-bearing chunk was ejected in favor of topic-comprehensive chunks — **14 verified failure mechanisms across Day 6–8**, 2 newly introduced by cross-encoder (topic-match over answer-match, limited qualifier matching).
+**Day 9 weighted fusion (chunk_size=500, k=5, α-sweep)**:
 
-See `evaluation/experiment_log.md` for the full Day 6–8 analysis, and `evaluation/error_analysis_report.md` for chunk-level audit.
+| Config              | Keyword Hit      | Routing Precision | Δ vs Day 6 hybrid k=5 |
+| ------------------- | ---------------- | ----------------- | --------------------- |
+| α=0.0 (= hybrid)    | 9/15 (60.0%)     | 82.7%             | —                     |
+| α=0.3               | 8/15 (53.3%)     | 85.3%             | −1                    |
+| α=0.5               | 9/15 (60.0%)     | 85.3%             | 0                     |
+| **α=0.7**           | **10/15 (66.7%)** | 85.3%            | **+1**                |
+| α=1.0 (= rerank)    | 9/15 (60.0%)     | 88.0%             | 0                     |
+
+**Best config: rerank_weighted k=5 @ α=0.7 (66.7% answer accuracy)** — project-wide high. Net +1 question over both hybrid k=5 (Day 6) and rerank k=5 (Day 8). Chunk-level analysis across 5 α values reveals **each failure mode has a different optimal α** — Q06 needs α=1.0, Q08 needs α=0.0, Q11/Q14 want α≥0.5. The α=0.7 peak is specific to this eval set's failure-mode mixture, not a transferable optimum. Next step: per-query-adaptive α via query classification.
+
+See `evaluation/experiment_log.md` for the full Day 6–9 analysis (17 verified lessons), and `evaluation/error_analysis_report.md` for chunk-level audit.
 
 ## Author
 

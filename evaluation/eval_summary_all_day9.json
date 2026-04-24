@@ -1,0 +1,62 @@
+[
+  {
+    "mode": "rerank_weighted",
+    "k": 5,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "alpha": 0.0,
+    "total": 15,
+    "keyword_hit": 9,
+    "source_hit": 15,
+    "both_correct": 9,
+    "avg_routing_precision": 0.8266666666666667
+  },
+  {
+    "mode": "rerank_weighted",
+    "k": 5,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "alpha": 0.3,
+    "total": 15,
+    "keyword_hit": 7,
+    "source_hit": 15,
+    "both_correct": 7,
+    "avg_routing_precision": 0.8533333333333334
+  },
+  {
+    "mode": "rerank_weighted",
+    "k": 5,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "alpha": 0.5,
+    "total": 15,
+    "keyword_hit": 9,
+    "source_hit": 15,
+    "both_correct": 9,
+    "avg_routing_precision": 0.8533333333333334
+  },
+  {
+    "mode": "rerank_weighted",
+    "k": 5,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "alpha": 0.7,
+    "total": 15,
+    "keyword_hit": 9,
+    "source_hit": 15,
+    "both_correct": 9,
+    "avg_routing_precision": 0.8533333333333334
+  },
+  {
+    "mode": "rerank_weighted",
+    "k": 5,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "alpha": 1.0,
+    "total": 15,
+    "keyword_hit": 9,
+    "source_hit": 15,
+    "both_correct": 9,
+    "avg_routing_precision": 0.88
+  }
+]

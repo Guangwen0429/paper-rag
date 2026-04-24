@@ -24,6 +24,7 @@ from src.retriever import (
     bm25_retrieve,
     hybrid_retrieve,
     hybrid_then_rerank,
+    hybrid_then_rerank_weighted,
 )
 from src.generator import generate_answer
 
@@ -32,13 +33,14 @@ from src.generator import generate_answer
 # 配置：要跑的实验组合
 # ============================================================
 EXPERIMENTS = [
-    # (retrieval_mode, k, chunk_size, chunk_overlap)
-    # Day 8 Exp H: cross-encoder reranker on top of hybrid retrieval
-    # 固定 chunk_size=500（Day 6 最优配置），对比 hybrid vs rerank 两种模式
-    ("hybrid", 3, 500, 50),
-    ("hybrid", 5, 500, 50),
-    ("rerank", 3, 500, 50),
-    ("rerank", 5, 500, 50),
+    # (retrieval_mode, k, chunk_size, chunk_overlap, alpha)
+    # Day 9 Exp J: weighted fusion of hybrid RRF + cross-encoder scores.
+    # Scan 5 alpha values at k=5 (tight window is where rerank matters most).
+    ("rerank_weighted", 5, 500, 50, 0.0),   # = pure hybrid baseline
+    ("rerank_weighted", 5, 500, 50, 0.3),
+    ("rerank_weighted", 5, 500, 50, 0.5),
+    ("rerank_weighted", 5, 500, 50, 0.7),
+    ("rerank_weighted", 5, 500, 50, 1.0),   # = pure rerank baseline
 ]
 PAPERS_DIR = "papers"
 
@@ -82,7 +84,7 @@ def count_correct_source_chunks(retrieved_docs: List, expected_files: List[str])
 # 检索切换
 # ============================================================
 
-def retrieve(mode: str, vectorstore, bm25, chunks, question: str, k: int):
+def retrieve(mode: str, vectorstore, bm25, chunks, question: str, k: int, alpha: float = 0.5):
     if mode == "vector":
         return retrieve_chunks(vectorstore, question, k=k)
     elif mode == "bm25":
@@ -90,8 +92,12 @@ def retrieve(mode: str, vectorstore, bm25, chunks, question: str, k: int):
     elif mode == "hybrid":
         return hybrid_retrieve(vectorstore, bm25, chunks, question, k=k)
     elif mode == "rerank":
-        # hybrid 召回 top-20，cross-encoder 精排取 top-k
         return hybrid_then_rerank(vectorstore, bm25, chunks, question, k=k, n_candidates=20)
+    elif mode == "rerank_weighted":
+        return hybrid_then_rerank_weighted(
+            vectorstore, bm25, chunks, question,
+            k=k, n_candidates=20, alpha=alpha,
+        )
     else:
         raise ValueError(f"Unknown retrieval mode: {mode}")
 
@@ -105,6 +111,7 @@ def evaluate_single(
         question_data: Dict[str, Any],
         mode: str,
         k: int,
+        alpha: float = 0.5,
 ) -> Dict[str, Any]:
     qid = question_data["id"]
     question = question_data["question"]
@@ -112,7 +119,7 @@ def evaluate_single(
     expected_files = question_data["expected_source_files"]
 
     # 检索
-    retrieved = retrieve(mode, vectorstore, bm25, chunks, question, k)
+    retrieved = retrieve(mode, vectorstore, bm25, chunks, question, k, alpha)
 
     # 生成答案
     answer = generate_answer(question, retrieved)
@@ -157,7 +164,7 @@ def evaluate_single(
 # 跑一组实验
 # ============================================================
 
-def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k, chunk_size, chunk_overlap):
+def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k, chunk_size, chunk_overlap, alpha=0.5):
     print("\n" + "#" * 70)
     print(f"# EXPERIMENT: mode={mode}, k={k}, chunk_size={chunk_size}, chunk_overlap={chunk_overlap}")
     print("#" * 70)
@@ -165,7 +172,7 @@ def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k, chunk_size
     results = []
     for q in questions:
         print(f"\n[{q['id']}] {q['question']}")
-        result = evaluate_single(vectorstore, bm25, chunks, q, mode, k)
+        result = evaluate_single(vectorstore, bm25, chunks, q, mode, k, alpha)
         results.append(result)
 
         kw_mark = "✓" if result["keyword_hit"] else "✗"
@@ -188,6 +195,7 @@ def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k, chunk_size
         "k": k,
         "chunk_size": chunk_size,
         "chunk_overlap": chunk_overlap,
+        "alpha": alpha,
         "total": total,
         "keyword_hit": keyword_correct,
         "source_hit": source_correct,
@@ -207,7 +215,10 @@ def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k, chunk_size
 
     # 保存详细结果（文件名包含 chunk_size，避免覆盖不同参数的结果）
     n_questions = len(results)
-    output_filename = f"eval_results_{mode}_k{k}_cs{chunk_size}_{n_questions}q.json"
+    if mode == "rerank_weighted":
+        output_filename = f"eval_results_{mode}_k{k}_cs{chunk_size}_a{alpha}_{n_questions}q.json"
+    else:
+        output_filename = f"eval_results_{mode}_k{k}_cs{chunk_size}_{n_questions}q.json"
     output_file = project_root / "evaluation" / output_filename
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
@@ -253,11 +264,11 @@ def main():
 
     # 3. 依次跑每组实验
     all_summaries = []
-    for mode, k, chunk_size, chunk_overlap in EXPERIMENTS:
+    for mode, k, chunk_size, chunk_overlap, alpha in EXPERIMENTS:
         vectorstore, bm25, chunks = get_or_build_index(chunk_size, chunk_overlap)
         summary = run_one_experiment(
             vectorstore, bm25, chunks, questions,
-            mode, k, chunk_size, chunk_overlap,
+            mode, k, chunk_size, chunk_overlap, alpha,
         )
         all_summaries.append(summary)
 
@@ -268,15 +279,16 @@ def main():
     print(f"\n{'Config':<28} {'Keyword Hit':<20} {'Source Hit':<20} {'Routing Prec':<15}")
     print("-" * 83)
     for s in all_summaries:
-        config = f"{s['mode']} k={s['k']} cs={s['chunk_size']}"
-        kw = f"{s['keyword_hit']}/{s['total']} ({s['keyword_hit']/s['total']*100:.1f}%)"
-        src = f"{s['source_hit']}/{s['total']} ({s['source_hit']/s['total']*100:.1f}%)"
-        prec = f"{s['avg_routing_precision']*100:.1f}%"
-        print(f"{config:<28} {kw:<20} {src:<20} {prec:<15}")
+        alpha_str = f" a={s.get('alpha', '-')}" if s['mode'] == 'rerank_weighted' else ""
+        config = f"{s['mode']} k={s['k']} cs={s['chunk_size']}{alpha_str}"
+        kw = f"{s['keyword_hit']}/{s['total']} ({s['keyword_hit'] / s['total'] * 100:.1f}%)"
+        src = f"{s['source_hit']}/{s['total']} ({s['source_hit'] / s['total'] * 100:.1f}%)"
+        prec = f"{s['avg_routing_precision'] * 100:.1f}%"
+        print(f"{config:<40} {kw:<20} {src:<20} {prec:<15}")
     print("=" * 83)
 
     # 保存汇总表（文件名包含日期标记，避免覆盖 Day 6 的汇总）
-    summary_file = project_root / "evaluation" / "eval_summary_all_day8.json"
+    summary_file = project_root / "evaluation" / "eval_summary_all_day9.json"
     with open(summary_file, "w", encoding="utf-8") as f:
         json.dump(all_summaries, f, indent=2, ensure_ascii=False)
     print(f"\nSummary saved to: {summary_file.relative_to(project_root)}")

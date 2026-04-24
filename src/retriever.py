@@ -265,6 +265,117 @@ def hybrid_then_rerank(
 
 
 # ============================================================
+# Weighted Rerank (Exp J)：混合 hybrid RRF 分数和 cross-encoder 分数
+# ============================================================
+
+def _min_max_normalize(scores: List[float]) -> List[float]:
+    """
+    Min-max normalization: 把一组分数压到 [0, 1] 区间。
+
+    为什么需要：hybrid 的 RRF 分数和 cross-encoder 的分数量纲不同
+    （RRF 通常在 0.01-0.05 范围，cross-encoder 通常在 -10 到 +10 范围）。
+    如果不 normalize，直接加权融合会让大量纲的分数完全主导结果——
+    相当于"没有加权"。
+
+    边界情况：如果所有分数相等（max == min），返回全 0.5（中性值）。
+    """
+    if len(scores) == 0:
+        return []
+    max_s = max(scores)
+    min_s = min(scores)
+    if max_s == min_s:
+        return [0.5] * len(scores)
+    return [(s - min_s) / (max_s - min_s) for s in scores]
+
+
+def hybrid_then_rerank_weighted(
+        vectorstore: Chroma,
+        bm25: BM25Okapi,
+        chunks: List[Document],
+        question: str,
+        k: int = 3,
+        n_candidates: int = 20,
+        alpha: float = 0.5,
+) -> List[Document]:
+    """
+    加权融合 hybrid RRF 分数和 cross-encoder 分数。
+
+    流程：
+      1. Hybrid 召回 top-n_candidates，同时保留 RRF 分数
+      2. Cross-encoder 给每个候选打分
+      3. 两组分数各自 min-max normalize 到 [0, 1]
+      4. 融合分数 = (1 - alpha) * norm_rrf + alpha * norm_ce
+      5. 按融合分数降序取 top-k
+
+    alpha 的含义：
+      - alpha=0.0: 完全用 RRF 排序 (退化成 Day 6 hybrid)
+      - alpha=0.5: 各半加权
+      - alpha=1.0: 完全用 cross-encoder 排序 (退化成 Day 8 rerank)
+
+    返回：
+        按融合分数排序的 top-k chunks
+    """
+    # ========== 1. Hybrid 召回（保留 RRF 分数）==========
+    # 我们需要 RRF 分数，所以不能直接调 hybrid_retrieve（它只返回 chunks）。
+    # 重新实现一遍带分数版本：
+
+    # 1a. 各取 n_candidates 的 vector 和 BM25 召回
+    vector_docs = retrieve_chunks(vectorstore, question, k=n_candidates)
+    bm25_docs = bm25_retrieve(bm25, chunks, question, k=n_candidates)
+
+    # 1b. RRF 融合
+    def doc_id(doc: Document) -> str:
+        source = doc.metadata.get("source", "")
+        page = doc.metadata.get("page", "")
+        preview = doc.page_content[:100]
+        return f"{source}|{page}|{preview}"
+
+    rrf_k_const = 60  # RRF 公式里的标准常数
+    rrf_scores = {}
+    doc_lookup = {}
+
+    for rank, doc in enumerate(vector_docs, start=1):
+        did = doc_id(doc)
+        rrf_scores[did] = rrf_scores.get(did, 0) + 1.0 / (rrf_k_const + rank)
+        doc_lookup[did] = doc
+
+    for rank, doc in enumerate(bm25_docs, start=1):
+        did = doc_id(doc)
+        rrf_scores[did] = rrf_scores.get(did, 0) + 1.0 / (rrf_k_const + rank)
+        doc_lookup[did] = doc
+
+    # 1c. 取 RRF 分数 top-n_candidates 作为候选（可能少于 n_candidates，
+    # 因为 vector 和 BM25 有重叠）
+    sorted_ids = sorted(rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True)[:n_candidates]
+    candidate_docs = [doc_lookup[did] for did in sorted_ids]
+    candidate_rrf = [rrf_scores[did] for did in sorted_ids]
+
+    if len(candidate_docs) == 0:
+        return []
+
+    # ========== 2. Cross-encoder 打分 ==========
+    encoder = _get_cross_encoder()
+    pairs = [(question, doc.page_content) for doc in candidate_docs]
+    ce_scores = encoder.predict(pairs).tolist()  # numpy array → list
+
+    # ========== 3. 各自 min-max normalize ==========
+    norm_rrf = _min_max_normalize(candidate_rrf)
+    norm_ce = _min_max_normalize(ce_scores)
+
+    # ========== 4. 加权融合 ==========
+    fused_scores = [
+        (1 - alpha) * r + alpha * c
+        for r, c in zip(norm_rrf, norm_ce)
+    ]
+
+    # ========== 5. 取 top-k ==========
+    scored_docs = list(zip(candidate_docs, fused_scores))
+    scored_docs.sort(key=lambda x: x[1], reverse=True)
+
+    return [doc for doc, score in scored_docs[:k]]
+
+
+# ============================================================
 # 测试代码：单独运行 `python -m src.retriever` 时执行
 # ============================================================
 if __name__ == "__main__":
