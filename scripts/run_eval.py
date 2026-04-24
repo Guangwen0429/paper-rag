@@ -23,6 +23,7 @@ from src.retriever import (
     retrieve_chunks,
     bm25_retrieve,
     hybrid_retrieve,
+    hybrid_then_rerank,
 )
 from src.generator import generate_answer
 
@@ -32,10 +33,12 @@ from src.generator import generate_answer
 # ============================================================
 EXPERIMENTS = [
     # (retrieval_mode, k, chunk_size, chunk_overlap)
-    ("vector", 3, 250, 50),
-    ("vector", 5, 250, 50),
-    ("hybrid", 3, 250, 50),
-    ("hybrid", 5, 250, 50),
+    # Day 8 Exp H: cross-encoder reranker on top of hybrid retrieval
+    # 固定 chunk_size=500（Day 6 最优配置），对比 hybrid vs rerank 两种模式
+    ("hybrid", 3, 500, 50),
+    ("hybrid", 5, 500, 50),
+    ("rerank", 3, 500, 50),
+    ("rerank", 5, 500, 50),
 ]
 PAPERS_DIR = "papers"
 
@@ -86,6 +89,9 @@ def retrieve(mode: str, vectorstore, bm25, chunks, question: str, k: int):
         return bm25_retrieve(bm25, chunks, question, k=k)
     elif mode == "hybrid":
         return hybrid_retrieve(vectorstore, bm25, chunks, question, k=k)
+    elif mode == "rerank":
+        # hybrid 召回 top-20，cross-encoder 精排取 top-k
+        return hybrid_then_rerank(vectorstore, bm25, chunks, question, k=k, n_candidates=20)
     else:
         raise ValueError(f"Unknown retrieval mode: {mode}")
 
@@ -270,7 +276,7 @@ def main():
     print("=" * 83)
 
     # 保存汇总表（文件名包含日期标记，避免覆盖 Day 6 的汇总）
-    summary_file = project_root / "evaluation" / "eval_summary_all_day7.json"
+    summary_file = project_root / "evaluation" / "eval_summary_all_day8.json"
     with open(summary_file, "w", encoding="utf-8") as f:
         json.dump(all_summaries, f, indent=2, ensure_ascii=False)
     print(f"\nSummary saved to: {summary_file.relative_to(project_root)}")

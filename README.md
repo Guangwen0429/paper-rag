@@ -4,7 +4,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 
 ## Current Status
 
-🚧 Work in progress — Day 7 of 21
+🚧 Work in progress — Day 8 of 21
 
 ## Features (so far)
 
@@ -18,6 +18,7 @@ A RAG (Retrieval-Augmented Generation) system for academic paper question answer
 - [x] Evaluation set (15 questions: single-fact, multi-chunk, cross-paper categories) with automatic metrics
 - [x] Controlled 4-config experiments (vector/hybrid × k=3/5) with chunk-level error analysis
 - [x] Chunking ablation (chunk_size 250 vs 500) with context-fragmentation analysis
+- [x] Cross-encoder reranker with answer-match vs topic-match failure analysis
 - [x] Hybrid retrieval (BM25 + dense)
 - [ ] Reranking
 - [x] Full evaluation set (15 questions, target: 30)
@@ -86,18 +87,18 @@ Run automatic evaluation on the curated QA set:
     result = rag.ask("What is retrieval-augmented generation?")
     rag.pretty_print(result)
 
-## Current Evaluation Snapshot (Day 7, 15 questions, 4 configs × 2 chunk sizes)
+## Current Evaluation Snapshot (Day 8, 15 questions, 3 experimental stages)
 
-**Day 6 baseline (chunk_size=500)**:
+**Day 6 baseline (chunk_size=500, vector vs hybrid retrieval)**:
 
 | Config          | Keyword Hit      | Source Hit | Routing Precision |
 | --------------- | ---------------- | ---------- | ----------------- |
 | vector k=3      | 6/15 (40.0%)     | 100%       | 86.7%             |
 | vector k=5      | 8/15 (53.3%)     | 100%       | 86.7%             |
 | hybrid k=3      | 5/15 (33.3%)     | 100%       | 84.4%             |
-| **hybrid k=5**  | **9/15 (60.0%)** | **100%**   | 82.7%             |
+| hybrid k=5      | 9/15 (60.0%)     | 100%       | 82.7%             |
 
-**Day 7 ablation (chunk_size=250)**:
+**Day 7 ablation (chunk_size=250, same 4 configs)**:
 
 | Config          | Keyword Hit      | Source Hit | Routing Precision | Δ vs Day 6 |
 | --------------- | ---------------- | ---------- | ----------------- | ---------- |
@@ -106,9 +107,18 @@ Run automatic evaluation on the curated QA set:
 | hybrid k=3      | 3/15 (20.0%)     | 100%       | 75.6%             | −2         |
 | hybrid k=5      | 6/15 (40.0%)     | 100%       | 73.3%             | −3         |
 
-**Best config remains hybrid k=5 at chunk_size=500 (60% answer accuracy)**. The cs=500 → cs=250 ablation regressed all four configs by 2–3 questions, revealing that reducing chunk_size trades "embedding purity on short key sentences" for "context completeness + BM25 stability" — a net-negative trade on academic-paper QA.
+**Day 8 reranker (chunk_size=500, cross-encoder on top of hybrid)**:
 
-See `evaluation/experiment_log.md` for the full Day 6–7 analysis (12 verified retrieval failure modes, including 4 new ones introduced by cs=250), and `evaluation/error_analysis_report.md` for chunk-level audit.
+| Config              | Keyword Hit      | Source Hit | Routing Precision | Δ vs Day 6 hybrid |
+| ------------------- | ---------------- | ---------- | ----------------- | ----------------- |
+| hybrid k=3 (baseline) | 5/15 (33.3%)   | 100%       | 84.4%             | —                 |
+| hybrid k=5 (baseline) | 9/15 (60.0%)   | 100%       | 82.7%             | —                 |
+| **rerank k=3**      | **8/15 (53.3%)** | 100%       | 82.2%             | **+20pp** vs hybrid k=3 |
+| rerank k=5          | 9/15 (60.0%)     | 100%       | **88.0%**         | same count, different 9 questions |
+
+**Best configs**: **rerank k=3 (53.3%)** and **rerank k=5 / hybrid k=5 (60.0%)** — cross-encoder reranker compresses 20 candidates into a tight window as effectively as widening k from 3 to 5 does. At k=5, rerank recovers Q06 (DPR definitional blind spot, never solved in Day 6 or Day 7) and Q11 (LLaMA 2 release sizes, never retrieved in Day 6 or Day 7) but loses Q08 and Q09 where the answer-bearing chunk was ejected in favor of topic-comprehensive chunks — **14 verified failure mechanisms across Day 6–8**, 2 newly introduced by cross-encoder (topic-match over answer-match, limited qualifier matching).
+
+See `evaluation/experiment_log.md` for the full Day 6–8 analysis, and `evaluation/error_analysis_report.md` for chunk-level audit.
 
 ## Author
 

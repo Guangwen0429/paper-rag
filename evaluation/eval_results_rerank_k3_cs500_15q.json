@@ -1,0 +1,584 @@
+[
+  {
+    "id": "Q01",
+    "question": "What is the hidden size (embedding dimension) of BERT-base?",
+    "expected_keywords": [
+      "768"
+    ],
+    "expected_files": [
+      "02_bert.pdf"
+    ],
+    "answer": "The hidden size (embedding dimension) of BERT-base is 768 [Source 2].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 2,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "06_dpr.pdf",
+        "page": 6,
+        "is_correct_source": false,
+        "content": "of retrieved candidates has been shown to work\nwell (Wang et al., 2019, 2018; Lin et al., 2018).\nSpeciﬁcally, let Pi ∈ RL×h (1≤ i≤ k) be\na BERT (base, uncased in our experiments) rep-\nresentation for the i-th passage, where L is the\nmaximum length of the passage andh the hidden\ndimension. The probabilities of a token being the\nstarting/ending positions of an answer span and a\npassage being selected are deﬁned as:\nPstart,i(s) = softmax\n(\nPiwstart\n)\ns, (3)\nPend,i(t) = softmax\n(\nPiwend\n)\nt, (4)"
+      },
+      {
+        "rank": 2,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "BERTBASE (L=12, H=768, A=12, Total Param-\neters=110M) and BERTLARGE (L=24, H=1024,\nA=16, Total Parameters=340M).\nBERTBASE was chosen to have the same model\nsize as OpenAI GPT for comparison purposes.\nCritically, however, the BERT Transformer uses\nbidirectional self-attention, while the GPT Trans-\nformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor\n2http://nlp.seas.harvard.edu/2018/04/03/attention.html"
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "plementation is almost identical to the original,\nwe will omit an exhaustive background descrip-\ntion of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Param-"
+      }
+    ]
+  },
+  {
+    "id": "Q02",
+    "question": "How many attention heads does the base Transformer model use?",
+    "expected_keywords": [
+      "8"
+    ],
+    "expected_files": [
+      "01_transformer.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 2,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "01_transformer.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "3.2.3 Applications of Attention in our Model\nThe Transformer uses multi-head attention in three different ways:\n• In \"encoder-decoder attention\" layers, the queries come from the previous decoder layer,\nand the memory keys and values come from the output of the encoder. This allows every\nposition in the decoder to attend over all positions in the input sequence. This mimics the\ntypical encoder-decoder attention mechanisms in sequence-to-sequence models such as\n[31, 2, 8]."
+      },
+      {
+        "rank": 2,
+        "source": "01_transformer.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "sinusoidal positional encoding with learned positional embeddings [8], and observe nearly identical\nresults to the base model.\n7 Conclusion\nIn this work, we presented the Transformer, the ﬁrst sequence transduction model based entirely on\nattention, replacing the recurrent layers most commonly used in encoder-decoder architectures with\nmulti-headed self-attention.\nFor translation tasks, the Transformer can be trained signiﬁcantly faster than architectures based"
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": false,
+        "content": "plementation is almost identical to the original,\nwe will omit an exhaustive background descrip-\ntion of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Param-"
+      }
+    ]
+  },
+  {
+    "id": "Q03",
+    "question": "What is the model dimension (d_model) of the base Transformer?",
+    "expected_keywords": [
+      "512"
+    ],
+    "expected_files": [
+      "01_transformer.pdf"
+    ],
+    "answer": "The model dimension (d_model) of the base Transformer is 512 [Source 1].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 2,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "01_transformer.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "Table 3: Variations on the Transformer architecture. Unlisted values are identical to those of the base\nmodel. All metrics are on the English-to-German translation development set, newstest2013. Listed\nperplexities are per-wordpiece, according to our byte-pair encoding, and should not be compared to\nper-word perplexities.\nN d model dff h d k dv Pdrop ϵls\ntrain PPL BLEU params\nsteps (dev) (dev) ×106\nbase 6 512 2048 8 64 64 0.1 0.1 100K 4.92 25.8 65\n(A)\n1 512 512 5.29 24.9\n4 128 128 5.00 25.5"
+      },
+      {
+        "rank": 2,
+        "source": "01_transformer.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "Figure 1: The Transformer - model architecture.\nwise fully connected feed-forward network. We employ a residual connection [10] around each of\nthe two sub-layers, followed by layer normalization [ 1]. That is, the output of each sub-layer is\nLayerNorm(x + Sublayer(x)), where Sublayer(x) is the function implemented by the sub-layer\nitself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding\nlayers, produce outputs of dimensiondmodel = 512."
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 7,
+        "is_correct_source": false,
+        "content": "Vaswani et al. (2017) is (L=6, H=1024, A=16)\nwith 100M parameters for the encoder, and the\nlargest Transformer we have found in the literature\nis (L=64, H=512, A=2) with 235M parameters\n(Al-Rfou et al., 2018). By contrast, BERT BASE\ncontains 110M parameters and BERT LARGE con-\ntains 340M parameters.\nIt has long been known that increasing the\nmodel size will lead to continual improvements\non large-scale tasks such as machine translation\nand language modeling, which is demonstrated"
+      }
+    ]
+  },
+  {
+    "id": "Q04",
+    "question": "How many parameters does the largest GPT-3 model (GPT-3 175B) have?",
+    "expected_keywords": [
+      "175"
+    ],
+    "expected_files": [
+      "04_gpt3.pdf"
+    ],
+    "answer": "The largest GPT-3 model, referred to as GPT-3 175B, has 175 billion parameters [Source 1].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 1,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "05_instructgpt.pdf",
+        "page": 2,
+        "is_correct_source": false,
+        "content": "on our method.\nsizes (1.3B, 6B, and 175B parameters), and all of our models use the GPT-3 architecture. Our main\nﬁndings are as follows:\nLabelers signiﬁcantly prefer InstructGPT outputs over outputs from GPT-3. On our test set,\noutputs from the 1.3B parameter InstructGPT model are preferred to outputs from the 175B GPT-3,\ndespite having over 100x fewer parameters. These models have the same architecture, and differ only"
+      },
+      {
+        "rank": 2,
+        "source": "07_cot.pdf",
+        "page": 3,
+        "is_correct_source": false,
+        "content": "Language models. We evaluate ﬁve large language models. The ﬁrst is GPT-3 (Brown et al.,\n2020), for which we use text-ada-001, text-babbage-001, text-curie-001, and text-davinci-002, which\npresumably correspond to InstructGPT models of 350M, 1.3B, 6.7B, and 175B parameters (Ouyang\net al., 2022).The second is LaMDA (Thoppilan et al., 2022), which has models of 422M, 2B, 8B,\n68B, and 137B parameters. The third is PaLM, which has models of 8B, 62B, and 540B parameters."
+      },
+      {
+        "rank": 3,
+        "source": "04_gpt3.pdf",
+        "page": 21,
+        "is_correct_source": true,
+        "content": "29.2% accuracy at 2 digit multiplication, an especially computationally intensive operation. Finally, GPT-3 achieves\n21.3% accuracy at single digit combined operations (for example, 9*(7+5)), suggesting that it has some robustness\nbeyond just single operations.\nAs Figure 3.10 makes clear, small models do poorly on all of these tasks – even the 13 billion parameter model (the\nsecond largest after the 175 billion full GPT-3) can solve 2 digit addition and subtraction only half the time, and all"
+      }
+    ]
+  },
+  {
+    "id": "Q05",
+    "question": "What is the largest model size in the LLaMA 2 family?",
+    "expected_keywords": [
+      "70"
+    ],
+    "expected_files": [
+      "08_llama2.pdf"
+    ],
+    "answer": "The largest model size in the LLaMA 2 family is 70 billion parameters (70B) [Source 2].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "08_llama2.pdf",
+        "page": 5,
+        "is_correct_source": true,
+        "content": "a global batch-size of 4M tokens. Bigger models — 34B and 70B — use Grouped-Query Attention (GQA) for\nimproved inference scalability.\n0 250 500 750 1000 1250 1500 1750 2000\nProcessed Tokens (Billions)\n1.4\n1.5\n1.6\n1.7\n1.8\n1.9\n2.0\n2.1\n2.2Train PPL\nLlama-2\n7B\n13B\n34B\n70B\nFigure 5: Training Loss forLlama 2 models. We compare the training loss of theLlama 2 family of models.\nWe observe that after pretraining on 2T Tokens, the models still did not show any sign of saturation."
+      },
+      {
+        "rank": 2,
+        "source": "08_llama2.pdf",
+        "page": 76,
+        "is_correct_source": true,
+        "content": "A.7 Model Card\nTable 52 presents a model card (Mitchell et al., 2018; Anil et al., 2023) that summarizes details of the models.\nModel Details\nModel DevelopersMeta AI\nVariations Llama 2comes in a range of parameter sizes—7B, 13B, and 70B—as well as\npretrained and fine-tuned variations.\nInput Models input text only.\nOutput Models generate text only.\nModel ArchitectureLlama 2isanauto-regressivelanguagemodelthatusesanoptimizedtransformer"
+      },
+      {
+        "rank": 3,
+        "source": "08_llama2.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "et al., 2023). For AGI Eval, we only evaluate on the English tasks and report the average.\nAs shown in Table 3,Llama 2 models outperformLlama 1 models. In particular,Llama 2 70B improves the\nresultsonMMLUandBBHby ≈5and ≈8points, respectively, comparedtoLlama 1 65B. Llama 2 7Band30B\nmodelsoutperformMPTmodelsofthecorrespondingsizeonallcategoriesbesidescodebenchmarks. Forthe\nFalcon models,Llama 2 7B and 34B outperform Falcon 7B and 40B models on all categories of benchmarks."
+      }
+    ]
+  },
+  {
+    "id": "Q06",
+    "question": "What architecture does DPR use as its question and passage encoder?",
+    "expected_keywords": [
+      "BERT"
+    ],
+    "expected_files": [
+      "06_dpr.pdf"
+    ],
+    "answer": "DPR uses a different encoder for the question, denoted as EQ(·), which maps the input question to a d-dimensional vector. For the passage, it uses a passage encoder denoted as EP(p) to map the passages to vectors. The similarity between the question and the passage is measured using the dot product of their vectors [Source 1].",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "06_dpr.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "At run-time, DPR applies a different encoderEQ(·)\nthat maps the input question to a d-dimensional\nvector, and retrievesk passages of which vectors\nare the closest to the question vector. We deﬁne\nthe similarity between the question and the passage\nusing the dot product of their vectors:\nsim(q,p ) = EQ(q)⊺EP (p). (1)\nAlthough more expressive model forms for measur-\ning the similarity between a question and a passage\ndo exist, such as networks consisting of multiple"
+      },
+      {
+        "rank": 2,
+        "source": "06_dpr.pdf",
+        "page": 11,
+        "is_correct_source": true,
+        "content": "DPR is unable to capture it.\nD Joint Training of Retriever and\nReader\nWe ﬁx the passage encoder in our joint-training\nscheme while allowing only the question encoder\nto receive backpropagation signal from the com-\nbined (retriever + reader) loss function. This allows\nus to leverage the HNSW-based FAISS index for\nefﬁcient low-latency retrieving, without reindexing\nthe passages during model updates. Our loss func-\ntion largely follows ORQA’s approach, which uses"
+      },
+      {
+        "rank": 3,
+        "source": "06_dpr.pdf",
+        "page": 12,
+        "is_correct_source": true,
+        "content": "(from the set of top 100 passages retrieved from\nthe same question). The question encoder’s initial\nstate is taken from a DPR model previously trained\non the NQ dataset. The reader’s initial state is a\nBERT-base model. In terms of the end-to-end QA\nresults, our joint-training scheme does not provide\nbetter results compared to the usual retriever/reader\ntraining pipeline, resulting in the same 39.8 exact\nmatch score on NQ dev as in our regular reader\nmodel training."
+      }
+    ]
+  },
+  {
+    "id": "Q07",
+    "question": "What generator (sequence-to-sequence) model does the RAG paper use?",
+    "expected_keywords": [
+      "BART"
+    ],
+    "expected_files": [
+      "03_rag.pdf"
+    ],
+    "answer": "The RAG paper uses two models: RAG-Sequence and RAG-Token. The RAG-Sequence model generates the complete sequence using the same retrieved document as a single latent variable, while the RAG-Token model can predict each target token based on a different document [Source 1].",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "03_rag.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "to predict each target token. The second approach, RAG-Token, can predict each target token based\non a different document. In the following, we formally introduce both models and then describe the\npη andpθ components, as well as the training and decoding procedure.\n2.1 Models\nRAG-Sequence Model The RAG-Sequence model uses the same retrieved document to generate\nthe complete sequence. Technically, it treats the retrieved document as a single latent variable that"
+      },
+      {
+        "rank": 2,
+        "source": "03_rag.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "state-of-the-art pipeline models which use strong retrieval supervision. Finally, we demonstrate that\nthe non-parametric memory can be replaced to update the models’ knowledge as the world changes.1\n2 Methods\nWe explore RAG models, which use the input sequencex to retrieve text documentsz and use them\nas additional context when generating the target sequence y. As shown in Figure 1, our models\nleverage two components: (i) a retriever pη(z|x) with parametersη that returns (top-K truncated)"
+      },
+      {
+        "rank": 3,
+        "source": "03_rag.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "byθ that generates a current token based on a context of the previousi− 1 tokensy1:i−1, the original\ninputx and a retrieved passagez.\nTo train the retriever and generator end-to-end, we treat the retrieved document as a latent variable.\nWe propose two models that marginalize over the latent documents in different ways to produce a\ndistribution over generated text. In one approach, RAG-Sequence, the model uses the same document"
+      }
+    ]
+  },
+  {
+    "id": "Q08",
+    "question": "What reinforcement learning algorithm is used to fine-tune InstructGPT?",
+    "expected_keywords": [
+      "PPO"
+    ],
+    "expected_files": [
+      "05_instructgpt.pdf"
+    ],
+    "answer": "InstructGPT is fine-tuned using reinforcement learning from human feedback (RLHF) [Source 1].",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 1,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "05_instructgpt.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "of the desired model behavior, which we use to ﬁne-tune GPT-3 using supervised\nlearning. We then collect a dataset of rankings of model outputs, which we use to\nfurther ﬁne-tune this supervised model using reinforcement learning from human\nfeedback. We call the resulting models InstructGPT. In human evaluations on\nour prompt distribution, outputs from the 1.3B parameter InstructGPT model are\npreferred to outputs from the 175B GPT-3, despite having 100x fewer parameters."
+      },
+      {
+        "rank": 2,
+        "source": "08_llama2.pdf",
+        "page": 8,
+        "is_correct_source": false,
+        "content": "fine-tune the model for 2 epochs.\n3.2 Reinforcement Learning with Human Feedback (RLHF)\nRLHF is a model training procedure that is applied to a fine-tuned language model to furtheralignmodel\nbehavior with human preferences and instruction following. We collect data that represents empirically\n9"
+      },
+      {
+        "rank": 3,
+        "source": "08_llama2.pdf",
+        "page": 68,
+        "is_correct_source": false,
+        "content": "(2021)weuseGPT-3-basedmetrics,whichhavebeenshowntohaverobustperformanceinpredictinghuman\njudgments. Specifically, a fine-tuned GPT-3 model¶¶, i.e. a “GPT-judge”, is used to predict the truthfulness\nand informativeness of the generated outputs from LLMs. For the QA prompt, we adopt a few-shot prompt\ncontaining 6 random QA pairs with the formats following InstructGPT (Ouyang et al., 2022). We report the"
+      }
+    ]
+  },
+  {
+    "id": "Q09",
+    "question": "On which arithmetic word problem benchmark does chain-of-thought prompting show the largest improvement in the Wei et al. paper?",
+    "expected_keywords": [
+      "GSM8K"
+    ],
+    "expected_files": [
+      "07_cot.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "07_cot.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "degree. Figure 2 illustrates one such result—on the GSM8K benchmark of math word problems\n(Cobbe et al., 2021), chain-of-thought prompting with PaLM 540B outperforms standard prompting\nby a large margin and achieves new state-of-the-art performance. A prompting only approach is\nimportant because it does not require a large training dataset and because a single model checkpoint\ncan perform many tasks without loss of generality. This work underscores how large language models"
+      },
+      {
+        "rank": 2,
+        "source": "07_cot.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "1 Introduction\nMath Word Problems (GSM8K)\n0\n20\n40\n60\n80\n100\n33\n55\n18\n57\nSolve rate (%)\nFinetuned GPT-3 175B\nPrior best\nPaLM 540B: standard prompting\nPaLM 540B: chain-of-thought prompting\nFigure 2: PaLM 540B uses chain-of-\nthought prompting to achieve new state-\nof-the-art performance on the GSM8K\nbenchmark of math word problems.\nFinetuned GPT-3 and prior best are from\nCobbe et al. (2021).\nThe NLP landscape has recently been revolutionized by"
+      },
+      {
+        "rank": 3,
+        "source": "07_cot.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "The emergence of chain-of-thought reasoning as a result of model scale has been a prevailing theme\n(Wei et al., 2022b). For many reasoning tasks where standard prompting has a ﬂat scaling curve, chain-\nof-thought prompting leads to dramatically increasing scaling curves. Chain-of-thought prompting\nappears to expand the set of tasks that large language models can perform successfully—in other\nwords, our work underscores that standard prompting only provides a lower bound on the capabilities"
+      }
+    ]
+  },
+  {
+    "id": "Q10",
+    "question": "What are the two pre-training objectives used in BERT?",
+    "expected_keywords": [
+      "masked",
+      "next sentence"
+    ],
+    "expected_files": [
+      "02_bert.pdf"
+    ],
+    "answer": "The two pre-training objectives used in BERT are \"masked language model\" (MLM) and \"next sentence prediction\" (NSP) [Source 1].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "02_bert.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "domly initialized BiLSTM on top of the “LTR + No\nNSP” model during ﬁne-tuning.\nablation studies can be found in Appendix C.\n5.1 Effect of Pre-training Tasks\nWe demonstrate the importance of the deep bidi-\nrectionality of BERT by evaluating two pre-\ntraining objectives using exactly the same pre-\ntraining data, ﬁne-tuning scheme, and hyperpa-\nrameters as BERTBASE :\nNo NSP : A bidirectional model which is trained\nusing the “masked LM” (MLM) but without the\n“next sentence prediction” (NSP) task."
+      },
+      {
+        "rank": 2,
+        "source": "02_bert.pdf",
+        "page": 13,
+        "is_correct_source": true,
+        "content": "left-to-right Transformer LM on a large text cor-\npus. In fact, many of the design decisions in BERT\nwere intentionally made to make it as close to\nGPT as possible so that the two methods could be\nminimally compared. The core argument of this\nwork is that the bi-directionality and the two pre-\ntraining tasks presented in Section 3.1 account for\nthe majority of the empirical improvements, but\nwe do note that there are several other differences\nbetween how BERT and GPT were trained:"
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "strated the importance of transfer learning from\nlarge pre-trained models, where an effective recipe\nis to ﬁne-tune models pre-trained with Ima-\ngeNet (Deng et al., 2009; Yosinski et al., 2014).\n3 BERT\nWe introduce BERT and its detailed implementa-\ntion in this section. There are two steps in our\nframework: pre-training and ﬁne-tuning. Dur-\ning pre-training, the model is trained on unlabeled\ndata over different pre-training tasks. For ﬁne-\ntuning, the BERT model is ﬁrst initialized with"
+      }
+    ]
+  },
+  {
+    "id": "Q11",
+    "question": "What are the three model sizes released in the LLaMA 2 family?",
+    "expected_keywords": [
+      "7",
+      "13",
+      "70"
+    ],
+    "expected_files": [
+      "08_llama2.pdf"
+    ],
+    "answer": "The three model sizes released in the LLaMA 2 family are 7B, 13B, and 70B parameters [Source 1].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "08_llama2.pdf",
+        "page": 76,
+        "is_correct_source": true,
+        "content": "A.7 Model Card\nTable 52 presents a model card (Mitchell et al., 2018; Anil et al., 2023) that summarizes details of the models.\nModel Details\nModel DevelopersMeta AI\nVariations Llama 2comes in a range of parameter sizes—7B, 13B, and 70B—as well as\npretrained and fine-tuned variations.\nInput Models input text only.\nOutput Models generate text only.\nModel ArchitectureLlama 2isanauto-regressivelanguagemodelthatusesanoptimizedtransformer"
+      },
+      {
+        "rank": 2,
+        "source": "08_llama2.pdf",
+        "page": 3,
+        "is_correct_source": true,
+        "content": "increased the size of the pretraining corpus by 40%, doubled the context length of the model, and\nadopted grouped-query attention (Ainslie et al., 2023). We are releasing variants ofLlama 2 with\n7B, 13B, and 70B parameters. We have also trained 34B variants, which we report on in this paper\nbut are not releasing.§\n2. Llama 2-Chat, a fine-tuned version ofLlama 2 that is optimized for dialogue use cases. We release\nvariants of this model with 7B, 13B, and 70B parameters as well."
+      },
+      {
+        "rank": 3,
+        "source": "08_llama2.pdf",
+        "page": 5,
+        "is_correct_source": true,
+        "content": "Training Data Params Context\nLength\nGQA Tokens LR\nLlama 1 See Touvron et al.\n(2023)\n7B 2k ✗ 1.0T 3.0 × 10−4\n13B 2k ✗ 1.0T 3.0 × 10−4\n33B 2k ✗ 1.4T 1.5 × 10−4\n65B 2k ✗ 1.4T 1.5 × 10−4\nLlama 2 A new mix of publicly\navailable online data\n7B 4k ✗ 2.0T 3.0 × 10−4\n13B 4k ✗ 2.0T 3.0 × 10−4\n34B 4k ✓ 2.0T 1.5 × 10−4\n70B 4k ✓ 2.0T 1.5 × 10−4\nTable 1:Llama 2 family of models.Token counts refer to pretraining data only. All models are trained with"
+      }
+    ]
+  },
+  {
+    "id": "Q12",
+    "question": "What are the three main training steps in the InstructGPT pipeline?",
+    "expected_keywords": [
+      "supervised",
+      "reward",
+      "PPO"
+    ],
+    "expected_files": [
+      "05_instructgpt.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "05_instructgpt.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "We also conduct automatic evaluations on a range of public NLP datasets. We train three model\n3Speciﬁcally, we train on prompts submitted to earlier versions of the InstructGPT models on the OpenAI\nAPI Playground, which were trained only using demonstration data. We ﬁlter out prompts containing PII.\n2"
+      },
+      {
+        "rank": 2,
+        "source": "05_instructgpt.pdf",
+        "page": 6,
+        "is_correct_source": true,
+        "content": "To train the very ﬁrst InstructGPT models, we asked labelers to write prompts themselves. This is\nbecause we needed an initial source of instruction-like prompts to bootstrap the process, and these\nkinds of prompts weren’t often submitted to the regular GPT-3 models on the API. We asked labelers\nto write three kinds of prompts:\n• Plain: We simply ask the labelers to come up with an arbitrary task, while ensuring the\ntasks had sufﬁcient diversity."
+      },
+      {
+        "rank": 3,
+        "source": "05_instructgpt.pdf",
+        "page": 6,
+        "is_correct_source": true,
+        "content": "Table 2; more prompts submitted to InstructGPT models are shown in Appendix A.2.1, and prompts\nsubmitted to GPT-3 models are shown in Appendix A.2.2. We provide more details about our dataset\nin Appendix A.\n3.3 Tasks\nOur training tasks are from two sources: (1) a dataset of prompts written by our labelers and (2) a\ndataset of prompts submitted to early InstructGPT models on our API (see Table 6). These prompts"
+      }
+    ]
+  },
+  {
+    "id": "Q13",
+    "question": "How many total parameters does BERT-large have, and how many does the largest GPT-3 model have?",
+    "expected_keywords": [
+      "340",
+      "175"
+    ],
+    "expected_files": [
+      "02_bert.pdf",
+      "04_gpt3.pdf"
+    ],
+    "answer": "BERT-LARGE has a total of 340 million parameters [Source 1]. The largest GPT-3 model, known as text-davinci-002, has 175 billion parameters [Source 3].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 2,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "BERTBASE (L=12, H=768, A=12, Total Param-\neters=110M) and BERTLARGE (L=24, H=1024,\nA=16, Total Parameters=340M).\nBERTBASE was chosen to have the same model\nsize as OpenAI GPT for comparison purposes.\nCritically, however, the BERT Transformer uses\nbidirectional self-attention, while the GPT Trans-\nformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor\n2http://nlp.seas.harvard.edu/2018/04/03/attention.html"
+      },
+      {
+        "rank": 2,
+        "source": "02_bert.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "Vaswani et al. (2017) is (L=6, H=1024, A=16)\nwith 100M parameters for the encoder, and the\nlargest Transformer we have found in the literature\nis (L=64, H=512, A=2) with 235M parameters\n(Al-Rfou et al., 2018). By contrast, BERT BASE\ncontains 110M parameters and BERT LARGE con-\ntains 340M parameters.\nIt has long been known that increasing the\nmodel size will lead to continual improvements\non large-scale tasks such as machine translation\nand language modeling, which is demonstrated"
+      },
+      {
+        "rank": 3,
+        "source": "07_cot.pdf",
+        "page": 3,
+        "is_correct_source": false,
+        "content": "Language models. We evaluate ﬁve large language models. The ﬁrst is GPT-3 (Brown et al.,\n2020), for which we use text-ada-001, text-babbage-001, text-curie-001, and text-davinci-002, which\npresumably correspond to InstructGPT models of 350M, 1.3B, 6.7B, and 175B parameters (Ouyang\net al., 2022).The second is LaMDA (Thoppilan et al., 2022), which has models of 422M, 2B, 8B,\n68B, and 137B parameters. The third is PaLM, which has models of 8B, 62B, and 540B parameters."
+      }
+    ]
+  },
+  {
+    "id": "Q14",
+    "question": "How many attention heads does the base Transformer model use, and how many does BERT-base use?",
+    "expected_keywords": [
+      "8",
+      "12"
+    ],
+    "expected_files": [
+      "01_transformer.pdf",
+      "02_bert.pdf"
+    ],
+    "answer": "The base Transformer model uses 8 attention heads, while BERTBASE uses 12 attention heads [Source 1].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "BERTBASE (L=12, H=768, A=12, Total Param-\neters=110M) and BERTLARGE (L=24, H=1024,\nA=16, Total Parameters=340M).\nBERTBASE was chosen to have the same model\nsize as OpenAI GPT for comparison purposes.\nCritically, however, the BERT Transformer uses\nbidirectional self-attention, while the GPT Trans-\nformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor\n2http://nlp.seas.harvard.edu/2018/04/03/attention.html"
+      },
+      {
+        "rank": 2,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "plementation is almost identical to the original,\nwe will omit an exhaustive background descrip-\ntion of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Param-"
+      },
+      {
+        "rank": 3,
+        "source": "01_transformer.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "3.2.3 Applications of Attention in our Model\nThe Transformer uses multi-head attention in three different ways:\n• In \"encoder-decoder attention\" layers, the queries come from the previous decoder layer,\nand the memory keys and values come from the output of the encoder. This allows every\nposition in the decoder to attend over all positions in the input sequence. This mimics the\ntypical encoder-decoder attention mechanisms in sequence-to-sequence models such as\n[31, 2, 8]."
+      }
+    ]
+  },
+  {
+    "id": "Q15",
+    "question": "What is the training task/objective of the original Transformer (Vaswani et al. 2017), and what are the pre-training objectives of BERT?",
+    "expected_keywords": [
+      "translation",
+      "masked",
+      "next sentence"
+    ],
+    "expected_files": [
+      "01_transformer.pdf",
+      "02_bert.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 3,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "02_bert.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "We can see that larger models lead to a strict ac-\ncuracy improvement across all four datasets, even\nfor MRPC which only has 3,600 labeled train-\ning examples, and is substantially different from\nthe pre-training tasks. It is also perhaps surpris-\ning that we are able to achieve such signiﬁcant\nimprovements on top of models which are al-\nready quite large relative to the existing literature.\nFor example, the largest Transformer explored in\nVaswani et al. (2017) is (L=6, H=1024, A=16)"
+      },
+      {
+        "rank": 2,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "chitecture across different tasks. There is mini-\nmal difference between the pre-trained architec-\nture and the ﬁnal downstream architecture.\nModel Architecture BERT’s model architec-\nture is a multi-layer bidirectional Transformer en-\ncoder based on the original implementation de-\nscribed in Vaswani et al. (2017) and released in\nthe tensor2tensor library.1 Because the use\nof Transformers has become common and our im-\nplementation is almost identical to the original,"
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "of the Transformer (Vaswani et al., 2017). Such re-\nstrictions are sub-optimal for sentence-level tasks,\nand could be very harmful when applying ﬁne-\ntuning based approaches to token-level tasks such\nas question answering, where it is crucial to incor-\nporate context from both directions.\nIn this paper, we improve the ﬁne-tuning based\napproaches by proposing BERT: Bidirectional\nEncoder Representations from Transformers.\nBERT alleviates the previously mentioned unidi-"
+      }
+    ]
+  }
+]

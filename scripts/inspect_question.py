@@ -20,22 +20,21 @@ EVAL_DIR = project_root / "evaluation"
 # 每个 config: (mode, k, chunk_size)
 # Day 6 用 cs=500, Day 7 用 cs=250
 # 默认对比 Day 7 的 4 组 (cs=250)
+# Day 8 Exp H: compare hybrid (baseline) vs rerank (new) at chunk_size=500
 CONFIGS = [
-    ("vector", 3, 250),
-    ("vector", 5, 250),
-    ("hybrid", 3, 250),
-    ("hybrid", 5, 250),
+    ("hybrid", 3, 500),
+    ("hybrid", 5, 500),
+    ("rerank", 3, 500),
+    ("rerank", 5, 500),
 ]
 
 
-def load_results(mode: str, k: int, chunk_size: int = 250) -> List[Dict[str, Any]]:
-    # Day 6 文件名（无 cs）作为兼容回退，Day 7 用带 cs 的新文件名
-    if chunk_size == 500:
-        # Day 6 文件名
+def load_results(mode: str, k: int, chunk_size: int = 500) -> List[Dict[str, Any]]:
+    # Day 8+ 文件名规范：所有结果都带 cs{size} 后缀
+    path = EVAL_DIR / f"eval_results_{mode}_k{k}_cs{chunk_size}_15q.json"
+    # Day 6 旧文件名兼容回退（hybrid/vector cs=500 有不带 cs 的旧版本）
+    if not path.exists() and chunk_size == 500:
         path = EVAL_DIR / f"eval_results_{mode}_k{k}_15q.json"
-    else:
-        # Day 7+ 文件名
-        path = EVAL_DIR / f"eval_results_{mode}_k{k}_cs{chunk_size}_15q.json"
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -78,7 +77,7 @@ def inspect_question(qid: str):
         if q is None:
             print(f"[!] {qid} not found in {mode} k={k}")
             return
-        all_configs[(mode, k)] = q
+        all_configs[(mode, k, chunk_size)] = q
         if question_text is None:
             question_text = q["question"]
             expected_keywords = q["expected_keywords"]
@@ -90,9 +89,9 @@ def inspect_question(qid: str):
     print(f"Expected source files: {expected_files}")
 
     # Per-config breakdown
-    for (mode, k), r in all_configs.items():
+    for (mode, k, cs), r in all_configs.items():
         print("\n" + "─" * 75)
-        print(f"  CONFIG: {mode}  k={k}  cs={chunk_size}")
+        print(f"  CONFIG: {mode}  k={k}  cs={cs}")
         print("─" * 75)
         kw_mark = "✓" if r["keyword_hit"] else "✗"
         print(f"  Keyword Hit: [{kw_mark}]    Source Hit: [{'✓' if r['source_hit'] else '✗'}]    "

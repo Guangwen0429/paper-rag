@@ -382,3 +382,106 @@ Day 7 closes the chunking-as-single-axis investigation with a negative result. T
 Day 7's hypothesis (smaller chunks → purer embeddings → better retrieval on short-answer queries) was **partially correct** (Q05, Q07, Q11 support it) but **globally wrong** on this eval set. The value of running the experiment was not in confirming or denying the hypothesis — it was in discovering the four counterbalancing mechanisms that the hypothesis had not considered. Three of those four (context loss, cross-paper attribution, LLM-memory masking) are invisible at the summary-metric level; only chunk-level inspection exposed them.
 
 The broader lesson is that **a reasonable-sounding single-variable intervention can regress the system by 10–20% of answer accuracy through mechanisms the intervention's motivation did not predict**. This is why Day 6's chunk-level inspection tooling was worth the investment: without it, Day 7 would have concluded "cs=250 is worse, revert to cs=500" and missed four distinct diagnostic insights useful for Exp G/H/I.
+
+---
+
+## Exp H: Cross-Encoder Reranker (Hybrid Retrieval + Cross-Encoder Rerank)
+
+**Date**: 2026-04-23
+**Motivation**: Day 7 Exp F concluded that chunking alone cannot fix the retrieval failure modes identified in Day 6 — specifically, the definitional blind spot (Q06), embedding blind spot (Q11), and BM25 noise intrusion (Q07). The three proposed next experiments (Exp G/H/I) each target different sources of the problem. Exp H adds a cross-encoder reranker on top of hybrid retrieval: the hybrid stage provides fast top-20 recall, and a cross-encoder re-scores candidates using query-document token interaction. Hypothesis: cross-encoder's token-level attention between query and passage should resolve the definitional blind spot by distinguishing "asks about X" from "contains definition of X" — the exact query-chunk mismatch that bi-encoder similarity cannot model.
+
+### Setup
+
+Chunk_size fixed at 500 (Day 6 baseline). Hybrid retrieval preserved as the retrieval stage. A cross-encoder model (`cross-encoder/ms-marco-MiniLM-L-6-v2`, 80MB, CPU-friendly) added as a reranking stage.
+
+**New module in `src/retriever.py`**:
+- `_get_cross_encoder()`: lazy-loaded singleton; the model is loaded once per process and cached across all eval queries
+- `rerank_with_cross_encoder(candidates, query, k)`: scores each (query, chunk) pair with cross-encoder, returns top-k
+- `hybrid_then_rerank(vectorstore, bm25, chunks, query, k, n_candidates=20)`: end-to-end pipeline — hybrid recalls top-20, cross-encoder reranks to top-k
+
+**Refactored `scripts/run_eval.py`**: added `rerank` as a retrieval mode; `EXPERIMENTS` now compares hybrid (baseline) vs. rerank (new) at k=3 and k=5, all at chunk_size=500.
+
+### Results
+
+| Config | Keyword Hit | Source Hit | Routing Precision |
+|---|:---:|:---:|:---:|
+| hybrid k=3 (Day 6 baseline) | 5/15 (33.3%) | 100% | 84.4% |
+| hybrid k=5 (Day 6 best) | 9/15 (60.0%) | 100% | 82.7% |
+| **rerank k=3** | **8/15 (53.3%)** | 100% | 82.2% |
+| **rerank k=5** | 9/15 (60.0%) | 100% | **88.0%** |
+
+**Two distinct results**:
+1. **rerank k=3 vs hybrid k=3: +20.0 percentage points (5 → 8)**. A dramatic gain under a tight context budget.
+2. **rerank k=5 vs hybrid k=5: 9/15 = 9/15**. But the 9 correct questions are *not the same set* — 2 questions were recovered and 2 were lost, netting zero. This is not "no effect"; it is a redistribution of failure modes.
+
+### Controlled-variable analysis
+
+**Fixed k, variable mode**:
+- At k=3: rerank > hybrid by 3 questions. Cross-encoder compresses 20 candidates into top-3 more effectively than RRF does into top-3 directly.
+- At k=5: rerank = hybrid by count, but routing precision is +5.3 percentage points higher (88.0% vs 82.7%). Cross-encoder filters out chunks from wrong papers that hybrid's BM25 leaked in.
+
+**Fixed mode, variable k**:
+- hybrid k=3 → k=5 gains +4 questions (33.3 → 60.0%). The gap reflects the cost of tight k windows under noisy retrieval.
+- rerank k=3 → k=5 gains only +1 question (53.3 → 60.0%). Rerank at k=3 is already strong enough that k=5 adds marginal benefit — implying rerank *substitutes for increasing k*, not just adds to it.
+
+**Interpretation**: Cross-encoder rerank's primary effect at k=3 is "do what hybrid k=5 would do, in a smaller window". At k=5, its primary effect shifts to routing precision and failure-mode trade-offs rather than hit count.
+
+### Chunk-level verification (4 questions inspected in depth)
+
+Inspected Q06, Q11 (rerank recovered these from Day 6/7), and Q08, Q09 (hybrid k=5 had these correct but rerank k=5 lost them). The four questions together map out the full behavioral profile of cross-encoder rerank.
+
+| QID | hybrid k=5 | rerank k=5 | Mechanism (verified) |
+|---|:---:|:---:|---|
+| Q06 | ✗ | ✓ | **Definitional blind spot resolved**: the chunk containing *"By leveraging the now standard BERT pretrained model ... and a dual-encoder architecture"* (DPR §1) was never retrieved by any Day 6/7 vector/hybrid config. Rerank elevated it to Rank 5 by matching query token "architecture" to chunk tokens "BERT pretrained model + dual-encoder architecture" via self-attention. |
+| Q11 | ✗ | ✓ | **Embedding blind spot resolved**: three chunks containing complete `7B, 13B, 70B` list (p76 Model Card, p3 release statement, p5 Table 1) all surfaced to rerank top-3. The p3 chunk is the exact chunk referenced in Day 6 Lesson 5 as "authoritative chunk that exists in index but is never retrievable" — rerank reaches it. |
+| Q08 | ✓ | ✗ | **Topic-match over answer-match (NEW)**: hybrid k=5 retrieved a chunk at Rank 5 containing *"fine-tune our supervised learning baseline to maximize this reward using the PPO algorithm"* (InstructGPT p1). Rerank pushed this chunk out of top-5, replacing it with chunks that more comprehensively discuss "InstructGPT + RLHF + fine-tuning" at the topic level but *contain no specific algorithm name*. LLM under rerank k=5 refused to answer. |
+| Q09 | ✓ | ✗ | **Limited qualifier matching (NEW)**: hybrid k=5 retrieved a chunk at Rank 3 containing *"The performance gain from chain-of-thought prompting is **largest** for PaLM 540B on GSM8K"* (CoT A.4). Rerank favored chunks more topically aligned with "GSM8K + chain-of-thought + standard prompting" but lacking the specific qualifier "largest" that the query requires. LLM refused despite seeing "GSM8K" in the context. |
+
+### LLM behavior under different k values (new observation from Q08)
+
+Q08 under rerank revealed a secondary effect: the LLM's willingness to refuse vs fabricate varies with k. Under rerank k=3, the LLM answered *"InstructGPT is fine-tuned using RLHF"* — a category error (RLHF is the training framework; PPO is the specific RL algorithm). Under rerank k=5, the LLM refused to answer. Interpretation: smaller k forces the LLM to synthesize from fewer candidates, increasing the incentive to commit to a partially-supported answer; larger k gives the LLM enough context to verify that the specific answer is not supported, triggering an honest refusal.
+
+This is not strictly a retrieval phenomenon — it is a generation-layer interaction with retrieval. Keyword_hit metrics treat "refuse" and "wrong-answer" identically as failures, but they carry different downstream consequences, as first noted in Day 5.
+
+### Failure mode map (Day 6–Day 8)
+
+Consolidating across three days of chunk-level evidence:
+
+| Mechanism | First identified | Exp H effect |
+|---|---|---|
+| 1. Character match ≠ fact presence | Day 6 | Unchanged (a metric limitation, not retrieval) |
+| 3. Pooling dilution of key sentence | Day 6 | Partially addressed at token level — cross-encoder attends to individual tokens even when their pooled direction is diluted |
+| 5. Embedding blind spot (chunk exists but never retrieved) | Day 6 | **Resolved for Q11** — rerank reached chunk #1831 |
+| 6. Scattered decoy keywords | Day 6 | Unchanged |
+| 7. BM25 noise intrusion | Day 6 | Partially addressed — rerank k=5 routing precision +5.3 points vs hybrid k=5 |
+| 8. Definitional blind spot | Day 6 | **Resolved for Q06** — cross-encoder token attention identifies "asks about X" vs "contains X" distinctions |
+| 9. Compound query smearing | Day 6 | Unchanged (Q15 still fails under rerank k=5) |
+| 10. Context fragmentation | Day 7 | N/A (chunk_size=500 here) |
+| 11. Cross-paper attribution amplified | Day 7 | Unchanged |
+| 12. LLM parametric memory masks retrieval failure | Day 7 | Unchanged (Q13 still has this issue) |
+| **13. Topic-match over answer-match (NEW)** | Day 8 | **Introduced by cross-encoder**: rerank favors topic-comprehensive chunks over chunks containing the specific answer token — visible in Q08 (PPO answer chunk ejected from top-5) |
+| **14. Limited qualifier matching (NEW)** | Day 8 | **Introduced by cross-encoder**: rerank matches query topic well but does not privilege chunks containing query qualifiers (largest, most, specifically) — visible in Q09 ("largest" evidence chunk ejected) |
+
+### Methodological lessons
+
+**Lesson 13**: Summary metrics can hide failure-mode redistribution. Rerank k=5 and hybrid k=5 both score 9/15, but they are correct on *different sets of questions*. Without chunk-level verification, this would be indistinguishable from "rerank has no effect at k=5", leading to the wrong conclusion that cross-encoder rerank only helps under tight k.
+
+**Lesson 14**: Cross-encoder is not a strict superset of bi-encoder for retrieval. Cross-encoder better captures query-document token interaction (beneficial for definitional and listing queries), but it introduces new biases — particularly a "topic-match" prior that can hide chunks that dilute an answer within broader discussion. Any retrieval component exchanges one set of failure modes for another; the choice of component depends on which failure modes are more acceptable for the target query distribution.
+
+**Lesson 15**: LLM refusal vs. fabrication is k-sensitive. At tight k, the LLM is more likely to fabricate a partially-supported answer (Q08 rerank k=3 answered "RLHF" as the algorithm, a category error); at wider k, the LLM is more willing to refuse when no chunk contains the specific answer. This interacts with retrieval quality: a noisier retriever under tight k produces more confident-wrong answers, while a better retriever under wider k produces more honest refusals. For production RAG, this argues for always running at k=5+ even when the top-1 is believed to be correct.
+
+### Implications for next experiments
+
+With rerank validated as a useful but double-edged intervention, three directions remain:
+
+- **Exp G (query rewriting / HyDE)**: Addresses two failure modes rerank cannot help with: compound query smearing (Q15, still unchanged) and the "answer-match" problem (Q08, Q09) — if the query is rewritten into an explicit hypothetical answer, the retrieval stage can target "answer-bearing chunks" more precisely. Also addresses the LLM fabrication risk (Lesson 15) by giving the retriever more specific targets.
+- **Exp I (semantic chunking)**: Orthogonal to rerank. Could stack: semantic chunks → hybrid retrieval → cross-encoder rerank. Would directly address context fragmentation (Lesson 10) identified in Day 7, which rerank does not touch.
+- **Exp J (hybrid rerank strategies)**: Instead of pure cross-encoder rerank, try weighted combinations (hybrid score + cross-encoder score) to preserve hybrid's answer-match signal while gaining cross-encoder's topic-match precision. Could address the Q08/Q09 regression without sacrificing Q06/Q11 recovery.
+
+Exp G is the most promising next step because it addresses the two failure modes (compound query, answer-match) that Exp H left open.
+
+### Retrospective on Day 8
+
+Day 8 is the first experiment in this project with a clear *positive* headline result (+20pp at k=3) alongside a clear trade-off at k=5 (same count, redistributed failures). The 20pp gain at k=3 is the kind of result that would normally be taken as a standalone conclusion ("rerank is a strict improvement"). Chunk-level verification showed this to be misleading: the k=5 comparison reveals rerank's hidden costs (Q08, Q09 lost), and those costs cannot be waived without explicit mitigation (e.g., rerank score blending in Exp J, or answer-aware retrieval in Exp G).
+
+The pattern across Day 6 → Day 7 → Day 8 is consistent: each intervention solves some failure modes and introduces new ones. There is no monolithic "better retriever". Progress comes from understanding which modes are active and choosing the intervention that best matches the current failure distribution. Day 8's measurement infrastructure (chunk-level inspection + failure mode taxonomy) is now the unit of progress, not single-number metrics.

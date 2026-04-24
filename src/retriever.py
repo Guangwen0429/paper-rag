@@ -15,6 +15,7 @@ from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from rank_bm25 import BM25Okapi
+from sentence_transformers import CrossEncoder
 
 
 # ============================================================
@@ -170,6 +171,97 @@ def hybrid_retrieve(
     )[:k]
 
     return [doc_lookup[did] for did in sorted_ids]
+
+
+# ============================================================
+# Cross-Encoder Reranker（Exp H，新增）
+# ============================================================
+
+# 全局单例：cross-encoder 模型加载慢（~2 秒），用缓存避免重复加载
+_cross_encoder_instance = None
+
+
+def _get_cross_encoder(model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2") -> CrossEncoder:
+    """
+    懒加载 cross-encoder 模型，缓存到全局变量。第一次调用会下载模型（~80MB），后续从本地缓存读取。
+    """
+    global _cross_encoder_instance
+    if _cross_encoder_instance is None:
+        print(f"[retriever] 正在加载 cross-encoder 模型: {model_name}")
+        _cross_encoder_instance = CrossEncoder(model_name)
+        print(f"[retriever] cross-encoder 模型加载完成")
+    return _cross_encoder_instance
+
+
+def rerank_with_cross_encoder(
+        candidates: List[Document],
+        question: str,
+        k: int = 3,
+) -> List[Document]:
+    """
+    用 cross-encoder 对候选 chunks 精排，返回 top-k。
+
+    Cross-encoder 和 bi-encoder (OpenAI embedding) 的区别：
+    - Bi-encoder: 分别编码 query 和 doc 成两个向量，算余弦相似度。快，但缺少 query-doc token 级交互。
+    - Cross-encoder: 把 query 和 doc 拼接一起输入 transformer，输出一个相关度分数。慢 10-100 倍，
+      但能捕捉 bi-encoder 看不到的细微语义关系（比如"X 是什么" vs "X 怎么用"的区别）。
+
+    在 RAG 里典型用法：先用快速检索（vector / BM25 / hybrid）召回 top-20 候选，再用 cross-encoder
+    对这 20 个精排取 top-3 或 top-5。这样成本可控，质量比单用快速检索高。
+
+    参数：
+        candidates: 候选 chunks 列表（通常来自 hybrid/vector/BM25 检索）
+        question: 用户问题
+        k: 返回 top-k
+
+    返回：
+        按 cross-encoder 分数降序排列的 top-k chunks
+    """
+    if len(candidates) == 0:
+        return []
+
+    encoder = _get_cross_encoder()
+
+    # 构造 (query, doc) pairs 批量打分
+    pairs = [(question, doc.page_content) for doc in candidates]
+    scores = encoder.predict(pairs)
+
+    # 按分数降序取 top-k
+    scored_docs = list(zip(candidates, scores))
+    scored_docs.sort(key=lambda x: x[1], reverse=True)
+
+    return [doc for doc, score in scored_docs[:k]]
+
+
+def hybrid_then_rerank(
+        vectorstore: Chroma,
+        bm25: BM25Okapi,
+        chunks: List[Document],
+        question: str,
+        k: int = 3,
+        n_candidates: int = 20,
+) -> List[Document]:
+    """
+    End-to-end reranker 管线：hybrid 召回 top-n_candidates → cross-encoder 精排 → 返回 top-k。
+
+    参数：
+        vectorstore, bm25, chunks: 两种索引（共用 hybrid_retrieve 的架构）
+        question: 用户问题
+        k: 最终返回的 chunk 数
+        n_candidates: hybrid 阶段召回多少个候选（默认 20）
+
+    返回：
+        top-k chunks（按 cross-encoder 分数排序）
+    """
+    # 1. Hybrid 召回 top-n_candidates 作为候选
+    candidates = hybrid_retrieve(
+        vectorstore, bm25, chunks, question,
+        k=n_candidates,  # 这里 k 是"召回多少个"，不是"最终返回多少"
+        n_candidates=n_candidates,
+    )
+
+    # 2. Cross-encoder 精排，返回 top-k
+    return rerank_with_cross_encoder(candidates, question, k=k)
 
 
 # ============================================================
