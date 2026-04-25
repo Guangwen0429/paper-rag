@@ -1,0 +1,1593 @@
+[
+  {
+    "id": "Q01",
+    "question": "What is the hidden size (embedding dimension) of BERT-base?",
+    "expected_keywords": [
+      "768"
+    ],
+    "expected_files": [
+      "02_bert.pdf"
+    ],
+    "answer": "The hidden size (embedding dimension) of BERT BASE is 768 [Source 5].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 4,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "02_bert.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "Vaswani et al. (2017) is (L=6, H=1024, A=16)\nwith 100M parameters for the encoder, and the\nlargest Transformer we have found in the literature\nis (L=64, H=512, A=2) with 235M parameters\n(Al-Rfou et al., 2018). By contrast, BERT BASE\ncontains 110M parameters and BERT LARGE con-\ntains 340M parameters.\nIt has long been known that increasing the\nmodel size will lead to continual improvements\non large-scale tasks such as machine translation\nand language modeling, which is demonstrated"
+      },
+      {
+        "rank": 2,
+        "source": "04_gpt3.pdf",
+        "page": 7,
+        "is_correct_source": false,
+        "content": "function of size; training models of many different sizes allows us to test this hypothesis both for validation loss and for\ndownstream language tasks.\nTable 2.1 shows the sizes and architectures of our 8 models. Herenparams is the total number of trainable parameters,\nnlayers is the total number of layers, dmodel is the number of units in each bottleneck layer (we always have the\nfeedforward layer four times the size of the bottleneck layer, dﬀ = 4∗dmodel), anddhead is the dimension of each"
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "both left and right context at every layer.\n5.2 Effect of Model Size\nIn this section, we explore the effect of model size\non ﬁne-tuning task accuracy. We trained a number\nof BERT models with a differing number of layers,\nhidden units, and attention heads, while otherwise\nusing the same hyperparameters and training pro-\ncedure as described previously.\nResults on selected GLUE tasks are shown in\nTable 6. In this table, we report the average Dev\nSet accuracy from 5 random restarts of ﬁne-tuning."
+      },
+      {
+        "rank": 4,
+        "source": "02_bert.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "beddings are used as input to a randomly initial-\nized two-layer 768-dimensional BiLSTM before\nthe classiﬁcation layer.\nResults are presented in Table 7. BERT LARGE\nperforms competitively with state-of-the-art meth-\nods. The best performing method concatenates the\ntoken representations from the top four hidden lay-\ners of the pre-trained Transformer, which is only\n0.3 F1 behind ﬁne-tuning the entire model. This\ndemonstrates that BERT is effective for both ﬁne-"
+      },
+      {
+        "rank": 5,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "plementation is almost identical to the original,\nwe will omit an exhaustive background descrip-\ntion of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Param-"
+      }
+    ]
+  },
+  {
+    "id": "Q02",
+    "question": "How many attention heads does the base Transformer model use?",
+    "expected_keywords": [
+      "8"
+    ],
+    "expected_files": [
+      "01_transformer.pdf"
+    ],
+    "answer": "The base Transformer model uses 8 parallel attention heads [Source 5].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 4,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": false,
+        "content": "plementation is almost identical to the original,\nwe will omit an exhaustive background descrip-\ntion of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Param-"
+      },
+      {
+        "rank": 2,
+        "source": "01_transformer.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "sinusoidal positional encoding with learned positional embeddings [8], and observe nearly identical\nresults to the base model.\n7 Conclusion\nIn this work, we presented the Transformer, the ﬁrst sequence transduction model based entirely on\nattention, replacing the recurrent layers most commonly used in encoder-decoder architectures with\nmulti-headed self-attention.\nFor translation tasks, the Transformer can be trained signiﬁcantly faster than architectures based"
+      },
+      {
+        "rank": 3,
+        "source": "01_transformer.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "3.2.3 Applications of Attention in our Model\nThe Transformer uses multi-head attention in three different ways:\n• In \"encoder-decoder attention\" layers, the queries come from the previous decoder layer,\nand the memory keys and values come from the output of the encoder. This allows every\nposition in the decoder to attend over all positions in the input sequence. This mimics the\ntypical encoder-decoder attention mechanisms in sequence-to-sequence models such as\n[31, 2, 8]."
+      },
+      {
+        "rank": 4,
+        "source": "01_transformer.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "the input or output sequences [2, 16]. In all but a few cases [22], however, such attention mechanisms\nare used in conjunction with a recurrent network.\nIn this work we propose the Transformer, a model architecture eschewing recurrence and instead\nrelying entirely on an attention mechanism to draw global dependencies between input and output.\nThe Transformer allows for signiﬁcantly more parallelization and can reach a new state of the art in"
+      },
+      {
+        "rank": 5,
+        "source": "01_transformer.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "MultiHead(Q,K,V ) = Concat(head 1,..., headh)W O\nwhere headi = Attention(QW Q\ni ,KW K\ni ,VW V\ni )\nWhere the projections are parameter matricesW Q\ni ∈ Rdmodel×dk,W K\ni ∈ Rdmodel×dk,W V\ni ∈ Rdmodel×dv\nandW O∈ Rhdv×dmodel.\nIn this work we employ h = 8 parallel attention layers, or heads. For each of these we use\ndk =dv =dmodel/h = 64. Due to the reduced dimension of each head, the total computational cost\nis similar to that of single-head attention with full dimensionality."
+      }
+    ]
+  },
+  {
+    "id": "Q03",
+    "question": "What is the model dimension (d_model) of the base Transformer?",
+    "expected_keywords": [
+      "512"
+    ],
+    "expected_files": [
+      "01_transformer.pdf"
+    ],
+    "answer": "The model dimension (d_model) of the base Transformer is 512 [Source 1].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "01_transformer.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "Table 3: Variations on the Transformer architecture. Unlisted values are identical to those of the base\nmodel. All metrics are on the English-to-German translation development set, newstest2013. Listed\nperplexities are per-wordpiece, according to our byte-pair encoding, and should not be compared to\nper-word perplexities.\nN d model dff h d k dv Pdrop ϵls\ntrain PPL BLEU params\nsteps (dev) (dev) ×106\nbase 6 512 2048 8 64 64 0.1 0.1 100K 4.92 25.8 65\n(A)\n1 512 512 5.29 24.9\n4 128 128 5.00 25.5"
+      },
+      {
+        "rank": 2,
+        "source": "01_transformer.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "Table 2 summarizes our results and compares our translation quality and training costs to other model\narchitectures from the literature. We estimate the number of ﬂoating point operations used to train a\nmodel by multiplying the training time, the number of GPUs used, and an estimate of the sustained\nsingle-precision ﬂoating-point capacity of each GPU 5.\n6.2 Model Variations\nTo evaluate the importance of different components of the Transformer, we varied our base model"
+      },
+      {
+        "rank": 3,
+        "source": "04_gpt3.pdf",
+        "page": 7,
+        "is_correct_source": false,
+        "content": "attention patterns in the layers of the transformer, similar to the Sparse Transformer [CGRS19]. To study the dependence\nof ML performance on model size, we train 8 different sizes of model, ranging over three orders of magnitude from 125\nmillion parameters to 175 billion parameters, with the last being the model we call GPT-3. Previous work [KMH+20]\nsuggests that with enough training data, scaling of validation loss should be approximately a smooth power law as a"
+      },
+      {
+        "rank": 4,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": false,
+        "content": "plementation is almost identical to the original,\nwe will omit an exhaustive background descrip-\ntion of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Param-"
+      },
+      {
+        "rank": 5,
+        "source": "01_transformer.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "sinusoidal positional encoding with learned positional embeddings [8], and observe nearly identical\nresults to the base model.\n7 Conclusion\nIn this work, we presented the Transformer, the ﬁrst sequence transduction model based entirely on\nattention, replacing the recurrent layers most commonly used in encoder-decoder architectures with\nmulti-headed self-attention.\nFor translation tasks, the Transformer can be trained signiﬁcantly faster than architectures based"
+      }
+    ]
+  },
+  {
+    "id": "Q04",
+    "question": "How many parameters does the largest GPT-3 model (GPT-3 175B) have?",
+    "expected_keywords": [
+      "175"
+    ],
+    "expected_files": [
+      "04_gpt3.pdf"
+    ],
+    "answer": "The largest GPT-3 model, known as GPT-3 175B, has 175 billion parameters [Source 2].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 1,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "05_instructgpt.pdf",
+        "page": 2,
+        "is_correct_source": false,
+        "content": "on our method.\nsizes (1.3B, 6B, and 175B parameters), and all of our models use the GPT-3 architecture. Our main\nﬁndings are as follows:\nLabelers signiﬁcantly prefer InstructGPT outputs over outputs from GPT-3. On our test set,\noutputs from the 1.3B parameter InstructGPT model are preferred to outputs from the 175B GPT-3,\ndespite having over 100x fewer parameters. These models have the same architecture, and differ only"
+      },
+      {
+        "rank": 2,
+        "source": "04_gpt3.pdf",
+        "page": 45,
+        "is_correct_source": true,
+        "content": "GPT-3 6.7B 1.39E+02 1.20E+22 6,660 300 6 3 2 1.0\nGPT-3 13B 2.68E+02 2.31E+22 12,850 300 6 3 2 1.0\nGPT-3 175B 3.64E+03 3.14E+23 174,600 300 6 3 2 1.0\nTable D.1: Starting from the right hand side and moving left, we begin with the number of training tokens that each\nmodel was trained with. Next we note that since T5 uses an encoder-decoder model, only half of the parameters are\nactive for each token during a forward or backwards pass. We then note that each token is involved in a single addition"
+      },
+      {
+        "rank": 3,
+        "source": "05_instructgpt.pdf",
+        "page": 1,
+        "is_correct_source": false,
+        "content": "1.3B 6B 175B\nModel size\n0.2\n0.4\n0.6Win rate against SFT 175B\nModel\nPPO-ptx\nPPO\nSFT\nGPT (prompted)\nGPT\nFigure 1: Human evaluations of various models on our API prompt distribution, evaluated by how\noften outputs from each model were preferred to those from the 175B SFT model. Our InstructGPT\nmodels (PPO-ptx) as well as its variant trained without pretraining mix (PPO) signiﬁcantly outperform\nthe GPT-3 baselines (GPT, GPT prompted); outputs from our 1.3B PPO-ptx model are preferred to"
+      },
+      {
+        "rank": 4,
+        "source": "05_instructgpt.pdf",
+        "page": 0,
+        "is_correct_source": false,
+        "content": "of the desired model behavior, which we use to ﬁne-tune GPT-3 using supervised\nlearning. We then collect a dataset of rankings of model outputs, which we use to\nfurther ﬁne-tune this supervised model using reinforcement learning from human\nfeedback. We call the resulting models InstructGPT. In human evaluations on\nour prompt distribution, outputs from the 1.3B parameter InstructGPT model are\npreferred to outputs from the 175B GPT-3, despite having 100x fewer parameters."
+      },
+      {
+        "rank": 5,
+        "source": "05_instructgpt.pdf",
+        "page": 60,
+        "is_correct_source": false,
+        "content": "F Model samples\nIn this section, we provide some additional samples from both the 175B GPT-3 and 175B InstructGPT\n(PPO-ptx) models. We sample atT = 1 for InstructGPT, and useT = 0.7 for GPT-3, since GPT-3\nperforms poorly at high temperatures (this slightly disadvantages InstructGPT).\nIn Figure 42, we show the full French sample from Figure 8, illustrating that our model is sometimes\nable to follow instructions in other languages, despite our dataset containing almost exclusively"
+      }
+    ]
+  },
+  {
+    "id": "Q05",
+    "question": "What is the largest model size in the LLaMA 2 family?",
+    "expected_keywords": [
+      "70"
+    ],
+    "expected_files": [
+      "08_llama2.pdf"
+    ],
+    "answer": "The largest model size in the LLaMA 2 family is 70 billion parameters [Source 1].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 4,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "08_llama2.pdf",
+        "page": 3,
+        "is_correct_source": true,
+        "content": "increased the size of the pretraining corpus by 40%, doubled the context length of the model, and\nadopted grouped-query attention (Ainslie et al., 2023). We are releasing variants ofLlama 2 with\n7B, 13B, and 70B parameters. We have also trained 34B variants, which we report on in this paper\nbut are not releasing.§\n2. Llama 2-Chat, a fine-tuned version ofLlama 2 that is optimized for dialogue use cases. We release\nvariants of this model with 7B, 13B, and 70B parameters as well."
+      },
+      {
+        "rank": 2,
+        "source": "08_llama2.pdf",
+        "page": 5,
+        "is_correct_source": true,
+        "content": "a global batch-size of 4M tokens. Bigger models — 34B and 70B — use Grouped-Query Attention (GQA) for\nimproved inference scalability.\n0 250 500 750 1000 1250 1500 1750 2000\nProcessed Tokens (Billions)\n1.4\n1.5\n1.6\n1.7\n1.8\n1.9\n2.0\n2.1\n2.2Train PPL\nLlama-2\n7B\n13B\n34B\n70B\nFigure 5: Training Loss forLlama 2 models. We compare the training loss of theLlama 2 family of models.\nWe observe that after pretraining on 2T Tokens, the models still did not show any sign of saturation."
+      },
+      {
+        "rank": 3,
+        "source": "08_llama2.pdf",
+        "page": 76,
+        "is_correct_source": true,
+        "content": "specific applications of the model. Please see the Responsible Use Guide available available at\nhttps://ai.meta.com/llama/responsible-user-guide\nTable 52: Model card forLlama 2.\n77"
+      },
+      {
+        "rank": 4,
+        "source": "04_gpt3.pdf",
+        "page": 56,
+        "is_correct_source": false,
+        "content": "in the process). About halfway through his rookie season, Ryan finally\nbegan to play Perry, who soon proved that he was a capable defensive\nlineman. His Super Bowl ring size is the largest of any professional\nfootball player in the history of the event. His ring size is 25, while\nthe ring size for the average adult male is between 10 and 12. Perry went\non to play for ten years in the NFL, retiring after the 1994 season. In\nhis ten years as a pro, he regularly struggled with his weight, which"
+      },
+      {
+        "rank": 5,
+        "source": "08_llama2.pdf",
+        "page": 34,
+        "is_correct_source": true,
+        "content": "6 Related Work\nLarge Language Models. The recent years have witnessed a substantial evolution in the field of LLMs.\nFollowing the scaling laws of Kaplan et al. (2020), several Large Language Models with more than 100B\nparameters have been proposed, from GPT-3 (Brown et al., 2020) to Gopher (Rae et al., 2022) or specialized\nmodels, e.g. Galactica, for science(Taylor et al., 2022). With 70B parameters, Chinchilla (Hoffmann et al.,"
+      }
+    ]
+  },
+  {
+    "id": "Q06",
+    "question": "What architecture does DPR use as its question and passage encoder?",
+    "expected_keywords": [
+      "BERT"
+    ],
+    "expected_files": [
+      "06_dpr.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "06_dpr.pdf",
+        "page": 11,
+        "is_correct_source": true,
+        "content": "DPR is unable to capture it.\nD Joint Training of Retriever and\nReader\nWe ﬁx the passage encoder in our joint-training\nscheme while allowing only the question encoder\nto receive backpropagation signal from the com-\nbined (retriever + reader) loss function. This allows\nus to leverage the HNSW-based FAISS index for\nefﬁcient low-latency retrieving, without reindexing\nthe passages during model updates. Our loss func-\ntion largely follows ORQA’s approach, which uses"
+      },
+      {
+        "rank": 2,
+        "source": "06_dpr.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "At run-time, DPR applies a different encoderEQ(·)\nthat maps the input question to a d-dimensional\nvector, and retrievesk passages of which vectors\nare the closest to the question vector. We deﬁne\nthe similarity between the question and the passage\nusing the dot product of their vectors:\nsim(q,p ) = EQ(q)⊺EP (p). (1)\nAlthough more expressive model forms for measur-\ning the similarity between a question and a passage\ndo exist, such as networks consisting of multiple"
+      },
+      {
+        "rank": 3,
+        "source": "06_dpr.pdf",
+        "page": 3,
+        "is_correct_source": true,
+        "content": "the retriever.\n5 Experiments: Passage Retrieval\nIn this section, we evaluate the retrieval perfor-\nmance of our Dense Passage Retriever (DPR),\nalong with analysis on how its output differs from\n6We use the unﬁltered TriviaQA version and discard the\nnoisy evidence documents mined from Bing.\n7The improvement of using gold contexts over passages\nthat contain answers is small. See Section 5.2 and Ap-\npendix A."
+      },
+      {
+        "rank": 4,
+        "source": "06_dpr.pdf",
+        "page": 6,
+        "is_correct_source": true,
+        "content": "depth = 200, search depth = 128.\nscore is chosen as the ﬁnal answer. The passage\nselection model serves as a reranker through cross-\nattention between the question and the passage. Al-\nthough cross-attention is not feasible for retrieving\nrelevant passages in a large corpus due to its non-\ndecomposable nature, it has more capacity than the\ndual-encoder model sim(q,p ) as in Eq. (1). Apply-\ning it to selecting the passage from a small number\nof retrieved candidates has been shown to work"
+      },
+      {
+        "rank": 5,
+        "source": "06_dpr.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "tions for whichCF contains a span that answers the\nquestion.\n3 Dense Passage Retriever (DPR)\nWe focus our research in this work on improv-\ning the retrieval component in open-domain QA.\nGiven a collection ofM text passages, the goal of\nour dense passage retriever (DPR) is to index all\nthe passages in a low-dimensional and continuous\nspace, such that it can retrieve efﬁciently the top\nk passages relevant to the input question for the\nreader at run-time. Note thatM can be very large"
+      }
+    ]
+  },
+  {
+    "id": "Q07",
+    "question": "What generator (sequence-to-sequence) model does the RAG paper use?",
+    "expected_keywords": [
+      "BART"
+    ],
+    "expected_files": [
+      "03_rag.pdf"
+    ],
+    "answer": "The RAG paper uses two generator models: RAG-Sequence and RAG-Token. The RAG-Sequence model generates the complete sequence using the same retrieved document, treating it as a single latent variable. In contrast, the RAG-Token model can predict each target token based on a different document, allowing for more flexibility in the generation process [Source 1][Source 5].",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "03_rag.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "to predict each target token. The second approach, RAG-Token, can predict each target token based\non a different document. In the following, we formally introduce both models and then describe the\npη andpθ components, as well as the training and decoding procedure.\n2.1 Models\nRAG-Sequence Model The RAG-Sequence model uses the same retrieved document to generate\nthe complete sequence. Technically, it treats the retrieved document as a single latent variable that"
+      },
+      {
+        "rank": 2,
+        "source": "03_rag.pdf",
+        "page": 3,
+        "is_correct_source": true,
+        "content": "2.5 Decoding\nAt test time, RAG-Sequence and RAG-Token require different ways to approximatearg maxyp(y|x).\nRAG-Token The RAG-Token model can be seen as a standard, autoregressive seq2seq genera-\ntor with transition probability: p′\nθ(yi|x,y 1:i−1) = ∑\nz∈top-k(p(·|x))pη(zi|x)pθ(yi|x,zi,y 1:i−1) To\ndecode, we can plugp′\nθ(yi|x,y 1:i−1) into a standard beam decoder.\nRAG-Sequence For RAG-Sequence, the likelihoodp(y|x) does not break into a conventional per-"
+      },
+      {
+        "rank": 3,
+        "source": "03_rag.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "byθ that generates a current token based on a context of the previousi− 1 tokensy1:i−1, the original\ninputx and a retrieved passagez.\nTo train the retriever and generator end-to-end, we treat the retrieved document as a latent variable.\nWe propose two models that marginalize over the latent documents in different ways to produce a\ndistribution over generated text. In one approach, RAG-Sequence, the model uses the same document"
+      },
+      {
+        "rank": 4,
+        "source": "03_rag.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "is marginalized to get the seq2seq probability p(y|x) via a top-K approximation. Concretely, the\ntop K documents are retrieved using the retriever, and the generator produces the output sequence\nprobability for each document, which are then marginalized,\npRAG-Sequence(y|x) ≈\n∑\nz∈top-k(p(·|x))\npη(z|x)pθ(y|x,z ) =\n∑\nz∈top-k(p(·|x))\npη(z|x)\nN∏\ni\npθ(yi|x,z,y 1:i−1)\nRAG-Token Model In the RAG-Token model we can draw a different latent document for each"
+      },
+      {
+        "rank": 5,
+        "source": "03_rag.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "pare two RAG formulations, one which conditions on the same retrieved passages\nacross the whole generated sequence, and another which can use different passages\nper token. We ﬁne-tune and evaluate our models on a wide range of knowledge-\nintensive NLP tasks and set the state of the art on three open domain QA tasks,\noutperforming parametric seq2seq models and task-speciﬁc retrieve-and-extract\narchitectures. For language generation tasks, we ﬁnd that RAG models generate"
+      }
+    ]
+  },
+  {
+    "id": "Q08",
+    "question": "What reinforcement learning algorithm is used to fine-tune InstructGPT?",
+    "expected_keywords": [
+      "PPO"
+    ],
+    "expected_files": [
+      "05_instructgpt.pdf"
+    ],
+    "answer": "The reinforcement learning algorithm used to fine-tune InstructGPT is the Proximal Policy Optimization (PPO) algorithm [Source 5].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 4,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "05_instructgpt.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "of the desired model behavior, which we use to ﬁne-tune GPT-3 using supervised\nlearning. We then collect a dataset of rankings of model outputs, which we use to\nfurther ﬁne-tune this supervised model using reinforcement learning from human\nfeedback. We call the resulting models InstructGPT. In human evaluations on\nour prompt distribution, outputs from the 1.3B parameter InstructGPT model are\npreferred to outputs from the 175B GPT-3, despite having 100x fewer parameters."
+      },
+      {
+        "rank": 2,
+        "source": "08_llama2.pdf",
+        "page": 8,
+        "is_correct_source": false,
+        "content": "fine-tune the model for 2 epochs.\n3.2 Reinforcement Learning with Human Feedback (RLHF)\nRLHF is a model training procedure that is applied to a fine-tuned language model to furtheralignmodel\nbehavior with human preferences and instruction following. We collect data that represents empirically\n9"
+      },
+      {
+        "rank": 3,
+        "source": "05_instructgpt.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "We additionally compare InstructGPT to ﬁne-tuning 175B GPT-3 on the FLAN (Wei et al., 2021) and\nT0 (Sanh et al., 2021) datasets, which both consist of a variety of NLP tasks, combined with natural\nlanguage instructions for each task (the datasets differ in the NLP datasets included, and the style of\ninstructions used). We ﬁne-tune them on approximately 1 million examples respectively and choose\nthe checkpoint which obtains the highest reward model score on the validation set. See Appendix C"
+      },
+      {
+        "rank": 4,
+        "source": "05_instructgpt.pdf",
+        "page": 14,
+        "is_correct_source": true,
+        "content": "Changing the KL model from the PPO init to GPT-3 gives similar results.\n4.3 Qualitative results\nInstructGPT models show promising generalization to instructions outside of the RLHF ﬁne-\ntuning distribution. In particular, we ﬁnd that InstructGPT shows ability to follow instructions\nin non-English languages, and perform summarization and question-answering for code. This is\n15"
+      },
+      {
+        "rank": 5,
+        "source": "05_instructgpt.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "use this to train our supervised learning baselines. Next, we collect a dataset of human-labeled\ncomparisons between outputs from our models on a larger set of API prompts. We then train a reward\nmodel (RM) on this dataset to predict which model output our labelers would prefer. Finally, we\nuse this RM as a reward function and ﬁne-tune our supervised learning baseline to maximize this\nreward using the PPO algorithm (Schulman et al., 2017). We illustrate this process in Figure 2. This"
+      }
+    ]
+  },
+  {
+    "id": "Q09",
+    "question": "On which arithmetic word problem benchmark does chain-of-thought prompting show the largest improvement in the Wei et al. paper?",
+    "expected_keywords": [
+      "GSM8K"
+    ],
+    "expected_files": [
+      "07_cot.pdf"
+    ],
+    "answer": "Chain-of-thought prompting shows the largest improvement on the GSM8K benchmark of math word problems in the Wei et al. paper, where it achieves state-of-the-art performance with the PaLM 540B model [Source 4].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "07_cot.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "exemplars of few-shot prompting.\nIn empirical experiments, we will observe the utility of chain-of-thought prompting for arithmetic\nreasoning (Section 3), commonsense reasoning (Section 4), and symbolic reasoning (Section 5).\n3 Arithmetic Reasoning\nWe begin by considering math word problems of the form in Figure 1, which measure the arithmetic\nreasoning ability of language models. Though simple for humans, arithmetic reasoning is a task where"
+      },
+      {
+        "rank": 2,
+        "source": "07_cot.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "naturally in sufﬁciently large language models via a simple method calledchain-of-\nthought prompting, where a few chain of thought demonstrations are provided as\nexemplars in prompting.\nExperiments on three large language models show that chain-of-thought prompting\nimproves performance on a range of arithmetic, commonsense, and symbolic\nreasoning tasks. The empirical gains can be striking. For instance, prompting a\nPaLM 540B with just eight chain-of-thought exemplars achieves state-of-the-art"
+      },
+      {
+        "rank": 3,
+        "source": "07_cot.pdf",
+        "page": 18,
+        "is_correct_source": true,
+        "content": "“chain of thought” to solve (at least in principle). We leave the empirical evaluation of chain-of-thought\nprompting on such diverse tasks (e.g., machine translation, etc.) to future work.\nA.4 Why is prompting with the equation only not enough for some arithmetic reasoning\ndatasets?\nPrompting with the equation only as an intermediate step does help on many datasets, especially when\nthe datasets only require a few reasoning steps (SV AMP, ASDiv, MAWPS). For GSM8K, however,"
+      },
+      {
+        "rank": 4,
+        "source": "07_cot.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "1 Introduction\nMath Word Problems (GSM8K)\n0\n20\n40\n60\n80\n100\n33\n55\n18\n57\nSolve rate (%)\nFinetuned GPT-3 175B\nPrior best\nPaLM 540B: standard prompting\nPaLM 540B: chain-of-thought prompting\nFigure 2: PaLM 540B uses chain-of-\nthought prompting to achieve new state-\nof-the-art performance on the GSM8K\nbenchmark of math word problems.\nFinetuned GPT-3 and prior best are from\nCobbe et al. (2021).\nThe NLP landscape has recently been revolutionized by"
+      },
+      {
+        "rank": 5,
+        "source": "07_cot.pdf",
+        "page": 19,
+        "is_correct_source": true,
+        "content": "B All Experimental Results\nThis section contains tables for experimental results for varying models and model sizes, on all\nbenchmarks, for standard prompting vs. chain-of-thought prompting.\nFor the arithmetic reasoning benchmarks, some chains of thought (along with the equations produced)\nwere correct, except the model performed an arithmetic operation incorrectly. A similar observation\nwas made in Cobbe et al. (2021). Hence, we can further add a Python program as an external"
+      }
+    ]
+  },
+  {
+    "id": "Q10",
+    "question": "What are the two pre-training objectives used in BERT?",
+    "expected_keywords": [
+      "masked",
+      "next sentence"
+    ],
+    "expected_files": [
+      "02_bert.pdf"
+    ],
+    "answer": "The two pre-training objectives used in BERT are the \"masked language model\" (MLM) and \"next sentence prediction\" (NSP) [Source 1].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "02_bert.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "domly initialized BiLSTM on top of the “LTR + No\nNSP” model during ﬁne-tuning.\nablation studies can be found in Appendix C.\n5.1 Effect of Pre-training Tasks\nWe demonstrate the importance of the deep bidi-\nrectionality of BERT by evaluating two pre-\ntraining objectives using exactly the same pre-\ntraining data, ﬁne-tuning scheme, and hyperpa-\nrameters as BERTBASE :\nNo NSP : A bidirectional model which is trained\nusing the “masked LM” (MLM) but without the\n“next sentence prediction” (NSP) task."
+      },
+      {
+        "rank": 2,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "SQuAD\nQuestion Answer Pair\nNERMNLI\nFigure 1: Overall pre-training and ﬁne-tuning procedures for BERT. Apart from output layers, the same architec-\ntures are used in both pre-training and ﬁne-tuning. The same pre-trained model parameters are used to initialize\nmodels for different down-stream tasks. During ﬁne-tuning, all parameters are ﬁne-tuned. [CLS] is a special\nsymbol added in front of every input example, and [SEP] is a special separator token (e.g. separating ques-\ntions/answers)."
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "strated the importance of transfer learning from\nlarge pre-trained models, where an effective recipe\nis to ﬁne-tune models pre-trained with Ima-\ngeNet (Deng et al., 2009; Yosinski et al., 2014).\n3 BERT\nWe introduce BERT and its detailed implementa-\ntion in this section. There are two steps in our\nframework: pre-training and ﬁne-tuning. Dur-\ning pre-training, the model is trained on unlabeled\ndata over different pre-training tasks. For ﬁne-\ntuning, the BERT model is ﬁrst initialized with"
+      },
+      {
+        "rank": 4,
+        "source": "02_bert.pdf",
+        "page": 3,
+        "is_correct_source": true,
+        "content": "segment, and position embeddings. A visualiza-\ntion of this construction can be seen in Figure 2.\n3.1 Pre-training BERT\nUnlike Peters et al. (2018a) and Radford et al.\n(2018), we do not use traditional left-to-right or\nright-to-left language models to pre-train BERT.\nInstead, we pre-train BERT using two unsuper-\nvised tasks, described in this section. This step\nis presented in the left part of Figure 1.\nTask #1: Masked LM Intuitively, it is reason-"
+      },
+      {
+        "rank": 5,
+        "source": "02_bert.pdf",
+        "page": 13,
+        "is_correct_source": true,
+        "content": "left-to-right Transformer LM on a large text cor-\npus. In fact, many of the design decisions in BERT\nwere intentionally made to make it as close to\nGPT as possible so that the two methods could be\nminimally compared. The core argument of this\nwork is that the bi-directionality and the two pre-\ntraining tasks presented in Section 3.1 account for\nthe majority of the empirical improvements, but\nwe do note that there are several other differences\nbetween how BERT and GPT were trained:"
+      }
+    ]
+  },
+  {
+    "id": "Q11",
+    "question": "What are the three model sizes released in the LLaMA 2 family?",
+    "expected_keywords": [
+      "7",
+      "13",
+      "70"
+    ],
+    "expected_files": [
+      "08_llama2.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "08_llama2.pdf",
+        "page": 76,
+        "is_correct_source": true,
+        "content": "specific applications of the model. Please see the Responsible Use Guide available available at\nhttps://ai.meta.com/llama/responsible-user-guide\nTable 52: Model card forLlama 2.\n77"
+      },
+      {
+        "rank": 2,
+        "source": "08_llama2.pdf",
+        "page": 30,
+        "is_correct_source": true,
+        "content": "the pretrainedLlama 2 in terms of truthfulness (50.18 → 64.14 for 70B) and toxicity (24.60 → 0.01 for 70B).\nThe percentage of toxic generations shrinks to effectively 0% forLlama 2-Chat of all sizes: this is the lowest\ntoxicity level among all compared models. In general, when compared to Falcon and MPT, the fine-tuned\nLlama 2-Chat shows the best performance in terms of toxicity and truthfulness. After fine-tuning,Llama"
+      },
+      {
+        "rank": 3,
+        "source": "08_llama2.pdf",
+        "page": 47,
+        "is_correct_source": true,
+        "content": "the two variants behaved very similar (with MQA just having a slightly larger FFN dimension).\nA.2.2 Additional Details for Pretrained Models Evaluation\nMMLU details. In Table 19, we report details of the MMLU (Hendrycks et al., 2020) evaluation forLlama\n2 models and others open-source models.\nStandard Benchmarks. In Table 20, we show results on several standard benchmarks.\nCode Generation. In Table 21, we compare results ofLlama 2 with popular open source models on the"
+      },
+      {
+        "rank": 4,
+        "source": "08_llama2.pdf",
+        "page": 29,
+        "is_correct_source": true,
+        "content": "(a) Overall violation percentage.\n (b)Overall safety and helpfulness mean rating.\nFigure 17: Overall safety measures.Left: Llama 2-Chat has low violation percentage overall across model\nsizes. Right: Llama 2-Chat has high safety and helpfulness mean rating overall across model sizes. It is\nimportant to note that these results are subject to limitations of the prompt set, subjectivity of the review\nguidelines, and subjectivity of individual raters.\n• 1 - Severe safety violations"
+      },
+      {
+        "rank": 5,
+        "source": "08_llama2.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "Model Size Code Commonsense\nReasoning\nWorld\nKnowledge\nReading\nComprehensionMath MMLU BBH AGI Eval\nMPT 7B 20.5 57.4 41.0 57.5 4.9 26.8 31.0 23.5\n30B 28.9 64.9 50.0 64.7 9.1 46.9 38.0 33.8\nFalcon 7B 5.6 56.1 42.8 36.0 4.6 26.2 28.0 21.2\n40B 15.2 69.2 56.7 65.7 12.6 55.4 37.1 37.0\nLlama 1\n7B 14.1 60.8 46.2 58.5 6.95 35.1 30.3 23.9\n13B 18.9 66.1 52.6 62.3 10.9 46.9 37.0 33.9\n33B 26.0 70.0 58.4 67.6 21.4 57.8 39.8 41.7\n65B 30.7 70.7 60.5 68.6 30.8 63.4 43.5 47.6\nLlama 2"
+      }
+    ]
+  },
+  {
+    "id": "Q12",
+    "question": "What are the three main training steps in the InstructGPT pipeline?",
+    "expected_keywords": [
+      "supervised",
+      "reward",
+      "PPO"
+    ],
+    "expected_files": [
+      "05_instructgpt.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "05_instructgpt.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "GPT-3 to follow a broad class of written instructions (see Figure 2). This technique uses human\npreferences as a reward signal to ﬁne-tune our models. We ﬁrst hire a team of 40 contractors to label\nour data, based on their performance on a screening test (see Section 3.4 and Appendix B.1 for more\ndetails). We then collect a dataset of human-written demonstrations of the desired output behavior\non (mostly English) prompts submitted to the OpenAI API3 and some labeler-written prompts, and"
+      },
+      {
+        "rank": 2,
+        "source": "04_gpt3.pdf",
+        "page": 5,
+        "is_correct_source": false,
+        "content": "hundreds of thousands of labeled examples are used. The main advantage of ﬁne-tuning is strong performance\non many benchmarks. The main disadvantages are the need for a new large dataset for every task, the potential\nfor poor generalization out-of-distribution [ MPL19], and the potential to exploit spurious features of the\ntraining data [GSL+18, NK19], potentially resulting in an unfair comparison with human performance. In"
+      },
+      {
+        "rank": 3,
+        "source": "05_instructgpt.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "We also conduct automatic evaluations on a range of public NLP datasets. We train three model\n3Speciﬁcally, we train on prompts submitted to earlier versions of the InstructGPT models on the OpenAI\nAPI Playground, which were trained only using demonstration data. We ﬁlter out prompts containing PII.\n2"
+      },
+      {
+        "rank": 4,
+        "source": "01_transformer.pdf",
+        "page": 6,
+        "is_correct_source": false,
+        "content": "This corresponds to increasing the learning rate linearly for the ﬁrstwarmup_steps training steps,\nand decreasing it thereafter proportionally to the inverse square root of the step number. We used\nwarmup_steps = 4000.\n5.4 Regularization\nWe employ three types of regularization during training:\nResidual Dropout We apply dropout [27] to the output of each sub-layer, before it is added to the\nsub-layer input and normalized. In addition, we apply dropout to the sums of the embeddings and the"
+      },
+      {
+        "rank": 5,
+        "source": "05_instructgpt.pdf",
+        "page": 14,
+        "is_correct_source": true,
+        "content": "Changing the KL model from the PPO init to GPT-3 gives similar results.\n4.3 Qualitative results\nInstructGPT models show promising generalization to instructions outside of the RLHF ﬁne-\ntuning distribution. In particular, we ﬁnd that InstructGPT shows ability to follow instructions\nin non-English languages, and perform summarization and question-answering for code. This is\n15"
+      }
+    ]
+  },
+  {
+    "id": "Q13",
+    "question": "How many total parameters does BERT-large have, and how many does the largest GPT-3 model have?",
+    "expected_keywords": [
+      "340",
+      "175"
+    ],
+    "expected_files": [
+      "02_bert.pdf",
+      "04_gpt3.pdf"
+    ],
+    "answer": "BERT-LARGE has a total of 340 million parameters [Source 1]. The largest GPT-3 model has 175 billion parameters [Source 5].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 4,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "02_bert.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "Vaswani et al. (2017) is (L=6, H=1024, A=16)\nwith 100M parameters for the encoder, and the\nlargest Transformer we have found in the literature\nis (L=64, H=512, A=2) with 235M parameters\n(Al-Rfou et al., 2018). By contrast, BERT BASE\ncontains 110M parameters and BERT LARGE con-\ntains 340M parameters.\nIt has long been known that increasing the\nmodel size will lead to continual improvements\non large-scale tasks such as machine translation\nand language modeling, which is demonstrated"
+      },
+      {
+        "rank": 2,
+        "source": "02_bert.pdf",
+        "page": 13,
+        "is_correct_source": true,
+        "content": "left-to-right Transformer LM on a large text cor-\npus. In fact, many of the design decisions in BERT\nwere intentionally made to make it as close to\nGPT as possible so that the two methods could be\nminimally compared. The core argument of this\nwork is that the bi-directionality and the two pre-\ntraining tasks presented in Section 3.1 account for\nthe majority of the empirical improvements, but\nwe do note that there are several other differences\nbetween how BERT and GPT were trained:"
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "BERTBASE (L=12, H=768, A=12, Total Param-\neters=110M) and BERTLARGE (L=24, H=1024,\nA=16, Total Parameters=340M).\nBERTBASE was chosen to have the same model\nsize as OpenAI GPT for comparison purposes.\nCritically, however, the BERT Transformer uses\nbidirectional self-attention, while the GPT Trans-\nformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor\n2http://nlp.seas.harvard.edu/2018/04/03/attention.html"
+      },
+      {
+        "rank": 4,
+        "source": "07_cot.pdf",
+        "page": 26,
+        "is_correct_source": false,
+        "content": "QUESTION : Kelian has two recipes for preparing dishes, one having 20 instructions and the second one having\ntwice as many instructions as the ﬁrst one. How many instructions does Kelian have to read to prepare the two\ndishes?\nMODEL ANSWER (INCORRECT ; ONE STEP MISSING ERROR ): Kelian has two recipes. One has 20 instruc-\ntions. The other has twice as many instructions as the ﬁrst one. So the second one has 40 instructions. So Kelian"
+      },
+      {
+        "rank": 5,
+        "source": "04_gpt3.pdf",
+        "page": 45,
+        "is_correct_source": true,
+        "content": "BERT-Base 1.89E+00 1.64E+20 109 250 6 3 2 1.0\nBERT-Large 6.16E+00 5.33E+20 355 250 6 3 2 1.0\nRoBERTa-Base 1.74E+01 1.50E+21 125 2,000 6 3 2 1.0\nRoBERTa-Large 4.93E+01 4.26E+21 355 2,000 6 3 2 1.0\nGPT-3 Small 2.60E+00 2.25E+20 125 300 6 3 2 1.0\nGPT-3 Medium 7.42E+00 6.41E+20 356 300 6 3 2 1.0\nGPT-3 Large 1.58E+01 1.37E+21 760 300 6 3 2 1.0\nGPT-3 XL 2.75E+01 2.38E+21 1,320 300 6 3 2 1.0\nGPT-3 2.7B 5.52E+01 4.77E+21 2,650 300 6 3 2 1.0\nGPT-3 6.7B 1.39E+02 1.20E+22 6,660 300 6 3 2 1.0"
+      }
+    ]
+  },
+  {
+    "id": "Q14",
+    "question": "How many attention heads does the base Transformer model use, and how many does BERT-base use?",
+    "expected_keywords": [
+      "8",
+      "12"
+    ],
+    "expected_files": [
+      "01_transformer.pdf",
+      "02_bert.pdf"
+    ],
+    "answer": "The base Transformer model uses 16 attention heads [Source 2], while BERT-base uses 12 attention heads [Source 5].",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "01_transformer.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "sinusoidal positional encoding with learned positional embeddings [8], and observe nearly identical\nresults to the base model.\n7 Conclusion\nIn this work, we presented the Transformer, the ﬁrst sequence transduction model based entirely on\nattention, replacing the recurrent layers most commonly used in encoder-decoder architectures with\nmulti-headed self-attention.\nFor translation tasks, the Transformer can be trained signiﬁcantly faster than architectures based"
+      },
+      {
+        "rank": 2,
+        "source": "02_bert.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "Vaswani et al. (2017) is (L=6, H=1024, A=16)\nwith 100M parameters for the encoder, and the\nlargest Transformer we have found in the literature\nis (L=64, H=512, A=2) with 235M parameters\n(Al-Rfou et al., 2018). By contrast, BERT BASE\ncontains 110M parameters and BERT LARGE con-\ntains 340M parameters.\nIt has long been known that increasing the\nmodel size will lead to continual improvements\non large-scale tasks such as machine translation\nand language modeling, which is demonstrated"
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 13,
+        "is_correct_source": true,
+        "content": "left-to-right Transformer LM on a large text cor-\npus. In fact, many of the design decisions in BERT\nwere intentionally made to make it as close to\nGPT as possible so that the two methods could be\nminimally compared. The core argument of this\nwork is that the bi-directionality and the two pre-\ntraining tasks presented in Section 3.1 account for\nthe majority of the empirical improvements, but\nwe do note that there are several other differences\nbetween how BERT and GPT were trained:"
+      },
+      {
+        "rank": 4,
+        "source": "02_bert.pdf",
+        "page": 12,
+        "is_correct_source": true,
+        "content": "use Adam with learning rate of 1e-4, β1 = 0.9,\nβ2 = 0.999, L2 weight decay of 0.01, learning\nrate warmup over the ﬁrst 10,000 steps, and linear\ndecay of the learning rate. We use a dropout prob-\nability of 0.1 on all layers. We use a gelu acti-\nvation (Hendrycks and Gimpel, 2016) rather than\nthe standard relu, following OpenAI GPT. The\ntraining loss is the sum of the mean masked LM\nlikelihood and the mean next sentence prediction\nlikelihood.\nTraining of BERT BASE was performed on 4"
+      },
+      {
+        "rank": 5,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "BERTBASE (L=12, H=768, A=12, Total Param-\neters=110M) and BERTLARGE (L=24, H=1024,\nA=16, Total Parameters=340M).\nBERTBASE was chosen to have the same model\nsize as OpenAI GPT for comparison purposes.\nCritically, however, the BERT Transformer uses\nbidirectional self-attention, while the GPT Trans-\nformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor\n2http://nlp.seas.harvard.edu/2018/04/03/attention.html"
+      }
+    ]
+  },
+  {
+    "id": "Q15",
+    "question": "What is the training task/objective of the original Transformer (Vaswani et al. 2017), and what are the pre-training objectives of BERT?",
+    "expected_keywords": [
+      "translation",
+      "masked",
+      "next sentence"
+    ],
+    "expected_files": [
+      "01_transformer.pdf",
+      "02_bert.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "chitecture across different tasks. There is mini-\nmal difference between the pre-trained architec-\nture and the ﬁnal downstream architecture.\nModel Architecture BERT’s model architec-\nture is a multi-layer bidirectional Transformer en-\ncoder based on the original implementation de-\nscribed in Vaswani et al. (2017) and released in\nthe tensor2tensor library.1 Because the use\nof Transformers has become common and our im-\nplementation is almost identical to the original,"
+      },
+      {
+        "rank": 2,
+        "source": "02_bert.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "of the Transformer (Vaswani et al., 2017). Such re-\nstrictions are sub-optimal for sentence-level tasks,\nand could be very harmful when applying ﬁne-\ntuning based approaches to token-level tasks such\nas question answering, where it is crucial to incor-\nporate context from both directions.\nIn this paper, we improve the ﬁne-tuning based\napproaches by proposing BERT: Bidirectional\nEncoder Representations from Transformers.\nBERT alleviates the previously mentioned unidi-"
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "plementation is almost identical to the original,\nwe will omit an exhaustive background descrip-\ntion of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Param-"
+      },
+      {
+        "rank": 4,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "strated the importance of transfer learning from\nlarge pre-trained models, where an effective recipe\nis to ﬁne-tune models pre-trained with Ima-\ngeNet (Deng et al., 2009; Yosinski et al., 2014).\n3 BERT\nWe introduce BERT and its detailed implementa-\ntion in this section. There are two steps in our\nframework: pre-training and ﬁne-tuning. Dur-\ning pre-training, the model is trained on unlabeled\ndata over different pre-training tasks. For ﬁne-\ntuning, the BERT model is ﬁrst initialized with"
+      },
+      {
+        "rank": 5,
+        "source": "02_bert.pdf",
+        "page": 13,
+        "is_correct_source": true,
+        "content": "left-to-right Transformer LM on a large text cor-\npus. In fact, many of the design decisions in BERT\nwere intentionally made to make it as close to\nGPT as possible so that the two methods could be\nminimally compared. The core argument of this\nwork is that the bi-directionality and the two pre-\ntraining tasks presented in Section 3.1 account for\nthe majority of the empirical improvements, but\nwe do note that there are several other differences\nbetween how BERT and GPT were trained:"
+      }
+    ]
+  },
+  {
+    "id": "Q16",
+    "question": "What dataset does the RAG paper use as its non-parametric memory (knowledge source) for retrieval?",
+    "expected_keywords": [
+      "Wikipedia"
+    ],
+    "expected_files": [
+      "03_rag.pdf"
+    ],
+    "answer": "The RAG paper uses a dense vector index of Wikipedia as its non-parametric memory (knowledge source) for retrieval [Source 4].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "03_rag.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "present without additional training.\nOur results highlight the beneﬁts of combining parametric and non-parametric memory with genera-\ntion for knowledge-intensive tasks—tasks that humans could not reasonably be expected to perform\nwithout access to an external knowledge source. Our RAG models achieve state-of-the-art results\non open Natural Questions [29], WebQuestions [3] and CuratedTrec [2] and strongly outperform"
+      },
+      {
+        "rank": 2,
+        "source": "03_rag.pdf",
+        "page": 6,
+        "is_correct_source": true,
+        "content": "RAG’s retriever with a ﬁxed BM25 system, and use BM25 retrieval scores as logits when calculating\np(z|x). Table 6 shows the results. For FEVER, BM25 performs best, perhaps since FEVER claims are\nheavily entity-centric and thus well-suited for word overlap-based retrieval. Differentiable retrieval\nimproves results on all other tasks, especially for Open-Domain QA, where it is crucial.\nIndex hot-swapping An advantage of non-parametric memory models like RAG is that knowledge"
+      },
+      {
+        "rank": 3,
+        "source": "03_rag.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "6 Discussion\nIn this work, we presented hybrid generation models with access to parametric and non-parametric\nmemory. We showed that our RAG models obtain state of the art results on open-domain QA. We\nfound that people prefer RAG’s generation over purely parametric BART, ﬁnding RAG more factual\nand speciﬁc. We conducted an thorough investigation of the learned retrieval component, validating\nits effectiveness, and we illustrated how the retrieval index can be hot-swapped to update the model"
+      },
+      {
+        "rank": 4,
+        "source": "03_rag.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "memory have so far been only investigated for extractive downstream tasks. We\nexplore a general-purpose ﬁne-tuning recipe for retrieval-augmented generation\n(RAG) — models which combine pre-trained parametric and non-parametric mem-\nory for language generation. We introduce RAG models where the parametric\nmemory is a pre-trained seq2seq model and the non-parametric memory is a dense\nvector index of Wikipedia, accessed with a pre-trained neural retriever. We com-"
+      },
+      {
+        "rank": 5,
+        "source": "03_rag.pdf",
+        "page": 5,
+        "is_correct_source": true,
+        "content": "how parametric and non-parametric memories work together—the non-parametric component helps\nto guide the generation, drawing out speciﬁc knowledge stored in the parametric memory.\n4.4 Fact Veriﬁcation\nTable 2 shows our results on FEVER. For 3-way classiﬁcation, RAG scores are within 4.3% of\nstate-of-the-art models, which are complex pipeline systems with domain-speciﬁc architectures and\nsubstantial engineering, trained using intermediate retrieval supervision, which RAG does not require.\n6"
+      }
+    ]
+  },
+  {
+    "id": "Q17",
+    "question": "What is the dimension of the dense passage embeddings used in DPR?",
+    "expected_keywords": [
+      "768"
+    ],
+    "expected_files": [
+      "06_dpr.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "06_dpr.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "passages that contain the answer. Single and Multi denote that our Dense Passage Retriever (DPR) was trained\nusing individial or combined training datasets (all the datasets excluding SQuAD). See text for more details.\ntraditional retrieval methods, the effects of different\ntraining schemes and the run-time efﬁciency.\nThe DPR model used in our main experiments\nis trained using the in-batch negative setting (Sec-\ntion 3.2) with a batch size of128 and one additional"
+      },
+      {
+        "rank": 2,
+        "source": "06_dpr.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "tions for whichCF contains a span that answers the\nquestion.\n3 Dense Passage Retriever (DPR)\nWe focus our research in this work on improv-\ning the retrieval component in open-domain QA.\nGiven a collection ofM text passages, the goal of\nour dense passage retriever (DPR) is to index all\nthe passages in a low-dimensional and continuous\nspace, such that it can retrieve efﬁciently the top\nk passages relevant to the input question for the\nreader at run-time. Note thatM can be very large"
+      },
+      {
+        "rank": 3,
+        "source": "06_dpr.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "surprisingly simple: the embedding is optimized\nfor maximizing inner products of the question and\nrelevant passage vectors, with an objective compar-\ning all pairs of questions and passages in a batch.\nOur Dense Passage Retriever (DPR) is exception-\nally strong. It not only outperforms BM25 by a\nlarge margin (65.2% vs. 42.9% in Top-5 accuracy),\nbut also results in a substantial improvement on\nthe end-to-end QA accuracy compared to ORQA\n(41.5% vs. 33.3%) in the open Natural Questions"
+      },
+      {
+        "rank": 4,
+        "source": "06_dpr.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "reader at run-time. Note thatM can be very large\n(e.g., 21 million passages in our experiments, de-\nscribed in Section 4.1) andk is usually small, such\nas 20–100.\n3.1 Overview\nOur dense passage retriever (DPR) uses a dense\nencoderEP (·) which maps any text passage to ad-\ndimensional real-valued vectors and builds an index\nfor all theM passages that we will use for retrieval.\n3The ideal size and boundary of a text passage are func-\ntions of both the retriever and reader. We also experimented"
+      },
+      {
+        "rank": 5,
+        "source": "06_dpr.pdf",
+        "page": 3,
+        "is_correct_source": true,
+        "content": "the retriever.\n5 Experiments: Passage Retrieval\nIn this section, we evaluate the retrieval perfor-\nmance of our Dense Passage Retriever (DPR),\nalong with analysis on how its output differs from\n6We use the unﬁltered TriviaQA version and discard the\nnoisy evidence documents mined from Bing.\n7The improvement of using gold contexts over passages\nthat contain answers is small. See Section 5.2 and Ap-\npendix A."
+      }
+    ]
+  },
+  {
+    "id": "Q18",
+    "question": "How many in-context examples (shots) does the few-shot setting in the GPT-3 paper typically use?",
+    "expected_keywords": [
+      "10",
+      "100"
+    ],
+    "expected_files": [
+      "04_gpt3.pdf"
+    ],
+    "answer": "The few-shot setting in the GPT-3 paper typically uses between 10 to 100 examples of context and completion, as this is how many examples can fit in the model’s context window [Source 2].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "04_gpt3.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "the one-shot setting, 85.0 F1 in the few-shot setting. Similarly, GPT-3 achieves 64.3% accuracy on TriviaQA in the\nzero-shot setting, 68.0% in the one-shot setting, and 71.2% in the few-shot setting, the last of which is state-of-the-art\nrelative to ﬁne-tuned models operating in the same closed-book setting.\nGPT-3 also displays one-shot and few-shot proﬁciency at tasks designed to test rapid adaption or on-the-ﬂy reasoning,"
+      },
+      {
+        "rank": 2,
+        "source": "04_gpt3.pdf",
+        "page": 5,
+        "is_correct_source": true,
+        "content": "an English sentence and the French translation), and few-shot works by givingK examples of context and\ncompletion, and then one ﬁnal example of context, with the model expected to provide the completion. We\ntypically setK in the range of 10 to 100 as this is how many examples can ﬁt in the model’s context window\n(nctx = 2048). The main advantages of few-shot are a major reduction in the need for task-speciﬁc data and"
+      },
+      {
+        "rank": 3,
+        "source": "04_gpt3.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "GPT-3, and measuring its in-context learning abilities. Speciﬁcally, we evaluate GPT-3 on over two dozen NLP datasets,\nas well as several novel tasks designed to test rapid adaptation to tasks unlikely to be directly contained in the training\nset. For each task, we evaluate GPT-3 under 3 conditions: (a) “few-shot learning”, or in-context learning where we\nallow as many demonstrations as will ﬁt into the model’s context window (typically 10 to 100), (b) “one-shot learning”,"
+      },
+      {
+        "rank": 4,
+        "source": "04_gpt3.pdf",
+        "page": 13,
+        "is_correct_source": true,
+        "content": "distribution, recovering strong performance in the few-shot setting.\nOn Natural Questions (NQs) GPT-3 achieves 14.6% in the zero-shot setting, 23.0% in the one-shot setting, and 29.9% in\nthe few-shot setting, compared to 36.6% for ﬁne-tuned T5 11B+SSM. Similar to WebQS, the large gain from zero-shot\nto few-shot may suggest a distribution shift, and may also explain the less competitive performance compared to"
+      },
+      {
+        "rank": 5,
+        "source": "04_gpt3.pdf",
+        "page": 17,
+        "is_correct_source": true,
+        "content": "reasoning and numeracy in the context of reading comprehension, GPT-3 in a few-shot setting outperforms the ﬁne-tuned\nBERT baseline from the original paper but is still well below both human performance and state-of-the-art approaches\nwhich augment neural networks with symbolic systems [RLL+19]. On SQuAD 2.0 [RJL18], GPT-3 demonstrates its\nfew-shot learning capabilities, improving by almost 10 F1 (to 69.8) compared to a zero-shot setting. This allows it to"
+      }
+    ]
+  },
+  {
+    "id": "Q19",
+    "question": "What is the context window size (sequence length) used during pre-training of LLaMA 2?",
+    "expected_keywords": [
+      "4096"
+    ],
+    "expected_files": [
+      "08_llama2.pdf"
+    ],
+    "answer": "The context window size used during pre-training of LLaMA 2 is 4096 tokens [Source 2].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "04_gpt3.pdf",
+        "page": 42,
+        "is_correct_source": false,
+        "content": "training (until an epoch boundary is reached) to minimize overﬁtting. All models use weight decay of 0.1 to provide a\nsmall amount of regularization [LH17].\nDuring training we always train on sequences of the full nctx = 2048 token context window, packing multiple\ndocuments into a single sequence when documents are shorter than 2048, in order to increase computational efﬁciency.\nSequences with multiple documents are not masked in any special way but instead documents within a sequence"
+      },
+      {
+        "rank": 2,
+        "source": "08_llama2.pdf",
+        "page": 46,
+        "is_correct_source": true,
+        "content": "Laurens van der Maaten, Jason Weston, and Omer Levy.\nA.2 Additional Details for Pretraining\nA.2.1 Architecture Changes Compared toLlama 1\nContext Length. We expand the context window forLlama 2 from 2048 tokens to 4096 tokens. The longer\ncontext window enables models to process more information, which is particularly useful for supporting\nlonger histories in chat applications, various summarization tasks, and understanding longer documents."
+      },
+      {
+        "rank": 3,
+        "source": "04_gpt3.pdf",
+        "page": 5,
+        "is_correct_source": false,
+        "content": "2 Approach\nOur basic pre-training approach, including model, data, and training, is similar to the process described in [RWC+19],\nwith relatively straightforward scaling up of the model size, dataset size and diversity, and length of training. Our use\nof in-context learning is also similar to [RWC+19], but in this work we systematically explore different settings for\nlearning within the context. Therefore, we start this section by explicitly deﬁning and contrasting the different settings"
+      },
+      {
+        "rank": 4,
+        "source": "08_llama2.pdf",
+        "page": 3,
+        "is_correct_source": true,
+        "content": "increased the size of the pretraining corpus by 40%, doubled the context length of the model, and\nadopted grouped-query attention (Ainslie et al., 2023). We are releasing variants ofLlama 2 with\n7B, 13B, and 70B parameters. We have also trained 34B variants, which we report on in this paper\nbut are not releasing.§\n2. Llama 2-Chat, a fine-tuned version ofLlama 2 that is optimized for dialogue use cases. We release\nvariants of this model with 7B, 13B, and 70B parameters as well."
+      },
+      {
+        "rank": 5,
+        "source": "08_llama2.pdf",
+        "page": 53,
+        "is_correct_source": true,
+        "content": "Figure 28.\nWe applied first GAtt toLlama 1, which was pretrained with a context length of 2048 tokens and then\nfine-tuned with 4096 max length. We tested if GAtt works beyond 2048 tokens, and the model arguably\nmanaged to understand attributes beyond this window. This promising result indicates that GAtt could be\nadapted as an efficient technique for long context attention.\nA.3.6 How Far Can Model-Based Evaluation Go?"
+      }
+    ]
+  },
+  {
+    "id": "Q20",
+    "question": "On which translation benchmark did the original Transformer paper report a BLEU score of 28.4?",
+    "expected_keywords": [
+      "WMT",
+      "English",
+      "German"
+    ],
+    "expected_files": [
+      "01_transformer.pdf"
+    ],
+    "answer": "The original Transformer paper reported a BLEU score of 28.4 on the WMT 2014 English-to-German translation task [Source 1].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "01_transformer.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "6 Results\n6.1 Machine Translation\nOn the WMT 2014 English-to-German translation task, the big transformer model (Transformer (big)\nin Table 2) outperforms the best previously reported models (including ensembles) by more than 2.0\nBLEU, establishing a new state-of-the-art BLEU score of 28.4. The conﬁguration of this model is\nlisted in the bottom line of Table 3. Training took 3.5 days on 8 P100 GPUs. Even our base model"
+      },
+      {
+        "rank": 2,
+        "source": "01_transformer.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-\nto-German translation task, improving over the existing best results, including\nensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task,\nour model establishes a new single-model state-of-the-art BLEU score of 41.0 after\ntraining for 3.5 days on eight GPUs, a small fraction of the training costs of the\nbest models from the literature.\n1 Introduction"
+      },
+      {
+        "rank": 3,
+        "source": "01_transformer.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "Deep-Att + PosUnk Ensemble [32] 40.4 8.0· 1020\nGNMT + RL Ensemble [31] 26.30 41.16 1.8· 1020 1.1· 1021\nConvS2S Ensemble [8] 26.36 41.29 7.7· 1019 1.2· 1021\nTransformer (base model) 27.3 38.1 3.3 · 1018\nTransformer (big) 28.4 41.0 2.3· 1019\nLabel Smoothing During training, we employed label smoothing of value ϵls = 0.1 [30]. This\nhurts perplexity, as the model learns to be more unsure, but improves accuracy and BLEU score.\n6 Results\n6.1 Machine Translation"
+      },
+      {
+        "rank": 4,
+        "source": "01_transformer.pdf",
+        "page": 7,
+        "is_correct_source": true,
+        "content": "surpasses all previously published models and ensembles, at a fraction of the training cost of any of\nthe competitive models.\nOn the WMT 2014 English-to-French translation task, our big model achieves a BLEU score of 41.0,\noutperforming all of the previously published single models, at less than 1/4 the training cost of the\nprevious state-of-the-art model. The Transformer (big) model trained for English-to-French used\ndropout ratePdrop = 0.1, instead of 0.3."
+      },
+      {
+        "rank": 5,
+        "source": "01_transformer.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "Table 3: Variations on the Transformer architecture. Unlisted values are identical to those of the base\nmodel. All metrics are on the English-to-German translation development set, newstest2013. Listed\nperplexities are per-wordpiece, according to our byte-pair encoding, and should not be compared to\nper-word perplexities.\nN d model dff h d k dv Pdrop ϵls\ntrain PPL BLEU params\nsteps (dev) (dev) ×106\nbase 6 512 2048 8 64 64 0.1 0.1 100K 4.92 25.8 65\n(A)\n1 512 512 5.29 24.9\n4 128 128 5.00 25.5"
+      }
+    ]
+  },
+  {
+    "id": "Q21",
+    "question": "What activation function does the original Transformer use in its feed-forward sublayers?",
+    "expected_keywords": [
+      "ReLU"
+    ],
+    "expected_files": [
+      "01_transformer.pdf"
+    ],
+    "answer": "The original Transformer uses the ReLU (Rectified Linear Unit) activation function in its feed-forward sublayers. This is indicated by the formula provided, which includes the ReLU activation between two linear transformations: FFN(x) = max(0,xW1 + b1)W2 + b2 [Source 4].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 3,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "01_transformer.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "Figure 1: The Transformer - model architecture.\nwise fully connected feed-forward network. We employ a residual connection [10] around each of\nthe two sub-layers, followed by layer normalization [ 1]. That is, the output of each sub-layer is\nLayerNorm(x + Sublayer(x)), where Sublayer(x) is the function implemented by the sub-layer\nitself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding\nlayers, produce outputs of dimensiondmodel = 512."
+      },
+      {
+        "rank": 2,
+        "source": "01_transformer.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "information ﬂow in the decoder to preserve the auto-regressive property. We implement this\ninside of scaled dot-product attention by masking out (setting to−∞) all values in the input\nof the softmax which correspond to illegal connections. See Figure 2.\n3.3 Position-wise Feed-Forward Networks\nIn addition to attention sub-layers, each of the layers in our encoder and decoder contains a fully\nconnected feed-forward network, which is applied to each position separately and identically. This"
+      },
+      {
+        "rank": 3,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": false,
+        "content": "plementation is almost identical to the original,\nwe will omit an exhaustive background descrip-\ntion of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Param-"
+      },
+      {
+        "rank": 4,
+        "source": "01_transformer.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "consists of two linear transformations with a ReLU activation in between.\nFFN(x) = max(0,xW 1 +b1)W2 +b2 (2)\nWhile the linear transformations are the same across different positions, they use different parameters\nfrom layer to layer. Another way of describing this is as two convolutions with kernel size 1.\nThe dimensionality of input and output is dmodel = 512 , and the inner-layer has dimensionality\ndf f = 2048.\n3.4 Embeddings and Softmax"
+      },
+      {
+        "rank": 5,
+        "source": "02_bert.pdf",
+        "page": 2,
+        "is_correct_source": false,
+        "content": "chitecture across different tasks. There is mini-\nmal difference between the pre-trained architec-\nture and the ﬁnal downstream architecture.\nModel Architecture BERT’s model architec-\nture is a multi-layer bidirectional Transformer en-\ncoder based on the original implementation de-\nscribed in Vaswani et al. (2017) and released in\nthe tensor2tensor library.1 Because the use\nof Transformers has become common and our im-\nplementation is almost identical to the original,"
+      }
+    ]
+  },
+  {
+    "id": "Q22",
+    "question": "What size of language model does the chain-of-thought paper find to be the threshold for emergent reasoning ability?",
+    "expected_keywords": [
+      "100"
+    ],
+    "expected_files": [
+      "07_cot.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "07_cot.pdf",
+        "page": 15,
+        "is_correct_source": true,
+        "content": "A Frequently Asked Questions\nA.1 Why does increasing model scale improve chain-of-thought prompting?\nThe ﬁnding that successful chain-of-thought reasoning predictably emerges only at certain model\nscales is intriguing. Scaling up language models has been shown to confer beneﬁts such as improved\nperformance and sample efﬁciency (Kaplan et al., 2020), but chain-of-thought reasoning is emergent\nin the sense that its success cannot be predicted only by extrapolating the performance of small scale"
+      },
+      {
+        "rank": 2,
+        "source": "07_cot.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "of large language models. This observation likely raises more questions than it answers—for instance,\nhow much more can we expect reasoning ability to improve with a further increase in model scale?\nWhat other prompting methods might expand the range of tasks that language models can solve?\nAs for limitations, we ﬁrst qualify that although chain of thought emulates the thought processes of\nhuman reasoners, this does not answer whether the neural network is actually “reasoning,” which"
+      },
+      {
+        "rank": 3,
+        "source": "07_cot.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "reasoning, we ﬁnd that chain-of-thought reasoning is an emergent property of model scale that allows\nsufﬁciently large language models to perform reasoning tasks that otherwise have ﬂat scaling curves.\nBroadening the range of reasoning tasks that language models can perform will hopefully inspire\nfurther work on language-based approaches to reasoning.\n9"
+      },
+      {
+        "rank": 4,
+        "source": "07_cot.pdf",
+        "page": 15,
+        "is_correct_source": true,
+        "content": "In summary, the success of chain-of-thought reasoning as a result of model scale is a complicated\nphenomena that likely involves a variety of emergent abilities (semantic understanding, symbol\nmapping, staying on topic, arithmetic ability, faithfulness, etc). Future work could more thoroughly\ninvestigate what properties of pretraining data, model architecture, and optimization objective causally\nenable such reasoning capabilities.\n16"
+      },
+      {
+        "rank": 5,
+        "source": "07_cot.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "experiments on commonsense reasoning underscored how the linguistic nature of chain-of-thought\nreasoning makes it generally applicable (Section 4). Finally, we showed that for symbolic reasoning,\nchain-of-thought prompting facilitates OOD generalization to longer sequence lengths (Section 5). In\nall experiments, chain-of-thought reasoning is elicited simply by prompting an off-the-shelf language\nmodel. No language models were ﬁnetuned in the process of writing this paper."
+      }
+    ]
+  },
+  {
+    "id": "Q23",
+    "question": "What positional encoding scheme does the original Transformer paper use?",
+    "expected_keywords": [
+      "sinusoidal",
+      "sine",
+      "cosine"
+    ],
+    "expected_files": [
+      "01_transformer.pdf"
+    ],
+    "answer": "The original Transformer paper uses sinusoidal positional encodings, which are defined using sine and cosine functions of different frequencies. Specifically, the positional encoding for a position \\( pos \\) and dimension \\( 2i \\) is given by \\( PE(pos, 2i) = \\sin(pos / 10000^{2i/d_{model}}) \\), and for dimension \\( 2i + 1 \\), it is given by \\( PE(pos, 2i + 1) = \\cos(pos / 10000^{2i/d_{model}}) \\) [Source 4].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "01_transformer.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "linear transformation, similar to [24]. In the embedding layers, we multiply those weights by√dmodel.\n3.5 Positional Encoding\nSince our model contains no recurrence and no convolution, in order for the model to make use of the\norder of the sequence, we must inject some information about the relative or absolute position of the\ntokens in the sequence. To this end, we add \"positional encodings\" to the input embeddings at the\n5"
+      },
+      {
+        "rank": 2,
+        "source": "01_transformer.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "sinusoidal positional encoding with learned positional embeddings [8], and observe nearly identical\nresults to the base model.\n7 Conclusion\nIn this work, we presented the Transformer, the ﬁrst sequence transduction model based entirely on\nattention, replacing the recurrent layers most commonly used in encoder-decoder architectures with\nmulti-headed self-attention.\nFor translation tasks, the Transformer can be trained signiﬁcantly faster than architectures based"
+      },
+      {
+        "rank": 3,
+        "source": "01_transformer.pdf",
+        "page": 6,
+        "is_correct_source": true,
+        "content": "positional encodings in both the encoder and decoder stacks. For the base model, we use a rate of\nPdrop = 0.1.\n7"
+      },
+      {
+        "rank": 4,
+        "source": "01_transformer.pdf",
+        "page": 5,
+        "is_correct_source": true,
+        "content": "Convolutional O(k·n·d2) O(1) O(logk(n))\nSelf-Attention (restricted) O(r·n·d) O(1) O(n/r)\nbottoms of the encoder and decoder stacks. The positional encodings have the same dimensiondmodel\nas the embeddings, so that the two can be summed. There are many choices of positional encodings,\nlearned and ﬁxed [8].\nIn this work, we use sine and cosine functions of different frequencies:\nPE (pos,2i) =sin(pos/100002i/dmodel)\nPE (pos,2i+1) =cos(pos/100002i/dmodel)"
+      },
+      {
+        "rank": 5,
+        "source": "01_transformer.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "Table 3: Variations on the Transformer architecture. Unlisted values are identical to those of the base\nmodel. All metrics are on the English-to-German translation development set, newstest2013. Listed\nperplexities are per-wordpiece, according to our byte-pair encoding, and should not be compared to\nper-word perplexities.\nN d model dff h d k dv Pdrop ϵls\ntrain PPL BLEU params\nsteps (dev) (dev) ×106\nbase 6 512 2048 8 64 64 0.1 0.1 100K 4.92 25.8 65\n(A)\n1 512 512 5.29 24.9\n4 128 128 5.00 25.5"
+      }
+    ]
+  },
+  {
+    "id": "Q24",
+    "question": "What scoring function does DPR use to compute relevance between a question and a passage?",
+    "expected_keywords": [
+      "dot product",
+      "inner product"
+    ],
+    "expected_files": [
+      "06_dpr.pdf"
+    ],
+    "answer": "DPR uses the dot product of the vectors representing the question and the passage to compute relevance. The similarity between the question \\( q \\) and the passage \\( p \\) is defined as \\( \\text{sim}(q,p) = EQ(q)^\\top EP(p) \\), where \\( EQ(·) \\) and \\( EP(·) \\) are the encoders that map the input question and passage to their respective vector representations [Source 1].",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "06_dpr.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "At run-time, DPR applies a different encoderEQ(·)\nthat maps the input question to a d-dimensional\nvector, and retrievesk passages of which vectors\nare the closest to the question vector. We deﬁne\nthe similarity between the question and the passage\nusing the dot product of their vectors:\nsim(q,p ) = EQ(q)⊺EP (p). (1)\nAlthough more expressive model forms for measur-\ning the similarity between a question and a passage\ndo exist, such as networks consisting of multiple"
+      },
+      {
+        "rank": 2,
+        "source": "06_dpr.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "tions for whichCF contains a span that answers the\nquestion.\n3 Dense Passage Retriever (DPR)\nWe focus our research in this work on improv-\ning the retrieval component in open-domain QA.\nGiven a collection ofM text passages, the goal of\nour dense passage retriever (DPR) is to index all\nthe passages in a low-dimensional and continuous\nspace, such that it can retrieve efﬁciently the top\nk passages relevant to the input question for the\nreader at run-time. Note thatM can be very large"
+      },
+      {
+        "rank": 3,
+        "source": "06_dpr.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "surprisingly simple: the embedding is optimized\nfor maximizing inner products of the question and\nrelevant passage vectors, with an objective compar-\ning all pairs of questions and passages in a batch.\nOur Dense Passage Retriever (DPR) is exception-\nally strong. It not only outperforms BM25 by a\nlarge margin (65.2% vs. 42.9% in Top-5 accuracy),\nbut also results in a substantial improvement on\nthe end-to-end QA accuracy compared to ORQA\n(41.5% vs. 33.3%) in the open Natural Questions"
+      },
+      {
+        "rank": 4,
+        "source": "06_dpr.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "In contrast, Natural Questions and WebQuestions\nimprove modestly and TriviaQA degrades slightly.\nResults can be improved further in some cases by\ncombining DPR with BM25 in both single- and\nmulti-dataset settings.\nWe conjecture that the lower performance on\nSQuAD is due to two reasons. First, the annota-\ntors wrote questions after seeing the passage. As\na result, there is a high lexical overlap between\npassages and questions, which gives BM25 a clear"
+      },
+      {
+        "rank": 5,
+        "source": "06_dpr.pdf",
+        "page": 6,
+        "is_correct_source": true,
+        "content": "depth = 200, search depth = 128.\nscore is chosen as the ﬁnal answer. The passage\nselection model serves as a reranker through cross-\nattention between the question and the passage. Al-\nthough cross-attention is not feasible for retrieving\nrelevant passages in a large corpus due to its non-\ndecomposable nature, it has more capacity than the\ndual-encoder model sim(q,p ) as in Eq. (1). Apply-\ning it to selecting the passage from a small number\nof retrieved candidates has been shown to work"
+      }
+    ]
+  },
+  {
+    "id": "Q25",
+    "question": "What are the two RAG model variants introduced in the paper, and how do they differ?",
+    "expected_keywords": [
+      "RAG-Sequence",
+      "RAG-Token"
+    ],
+    "expected_files": [
+      "03_rag.pdf"
+    ],
+    "answer": "The two RAG model variants introduced in the paper are one that conditions on the same retrieved passages across the whole generated sequence and another that can use different passages per token. The key difference between them lies in their approach to utilizing retrieved passages: the first variant maintains consistency by using the same passages throughout the entire sequence, while the second variant allows for variability by using different passages for each token generated [Source 2].",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 4,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "03_rag.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "two variants: the standard 3-way classiﬁcation task (supports/refutes/not enough info) and the 2-way\n(supports/refutes) task studied in Thorne and Vlachos [57]. In both cases we report label accuracy.\n4 Results\n4.1 Open-domain Question Answering\nTable 1 shows results for RAG along with state-of-the-art models. On all four open-domain QA\ntasks, RAG sets a new state of the art (only on the T5-comparable split for TQA). RAG combines"
+      },
+      {
+        "rank": 2,
+        "source": "03_rag.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "pare two RAG formulations, one which conditions on the same retrieved passages\nacross the whole generated sequence, and another which can use different passages\nper token. We ﬁne-tune and evaluate our models on a wide range of knowledge-\nintensive NLP tasks and set the state of the art on three open domain QA tasks,\noutperforming parametric seq2seq models and task-speciﬁc retrieve-and-extract\narchitectures. For language generation tasks, we ﬁnd that RAG models generate"
+      },
+      {
+        "rank": 3,
+        "source": "03_rag.pdf",
+        "page": 9,
+        "is_correct_source": true,
+        "content": "Acknowledgments\nThe authors would like to thank the reviewers for their thoughtful and constructive feedback on this\npaper, as well as HuggingFace for their help in open-sourcing code to run RAG models. The authors\nwould also like to thank Kyunghyun Cho and Sewon Min for productive discussions and advice. EP\nthanks supports from the NSF Graduate Research Fellowship. PL is supported by the FAIR PhD\nprogram.\nReferences"
+      },
+      {
+        "rank": 4,
+        "source": "08_llama2.pdf",
+        "page": 3,
+        "is_correct_source": false,
+        "content": "increased the size of the pretraining corpus by 40%, doubled the context length of the model, and\nadopted grouped-query attention (Ainslie et al., 2023). We are releasing variants ofLlama 2 with\n7B, 13B, and 70B parameters. We have also trained 34B variants, which we report on in this paper\nbut are not releasing.§\n2. Llama 2-Chat, a fine-tuned version ofLlama 2 that is optimized for dialogue use cases. We release\nvariants of this model with 7B, 13B, and 70B parameters as well."
+      },
+      {
+        "rank": 5,
+        "source": "03_rag.pdf",
+        "page": 16,
+        "is_correct_source": true,
+        "content": "blob/master/examples/rag/README.md and an interactive demo of a RAG model can be found\nat https://huggingface.co/rag/\n2https://github.com/pytorch/fairseq\n3https://github.com/huggingface/transformers\n17"
+      }
+    ]
+  },
+  {
+    "id": "Q26",
+    "question": "What three categories of reasoning tasks does the chain-of-thought paper evaluate?",
+    "expected_keywords": [
+      "arithmetic",
+      "commonsense",
+      "symbolic"
+    ],
+    "expected_files": [
+      "07_cot.pdf"
+    ],
+    "answer": "The chain-of-thought paper evaluates reasoning tasks in three categories: math word problems, commonsense reasoning, and symbolic manipulation [Source 3].",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "07_cot.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "experiments on commonsense reasoning underscored how the linguistic nature of chain-of-thought\nreasoning makes it generally applicable (Section 4). Finally, we showed that for symbolic reasoning,\nchain-of-thought prompting facilitates OOD generalization to longer sequence lengths (Section 5). In\nall experiments, chain-of-thought reasoning is elicited simply by prompting an off-the-shelf language\nmodel. No language models were ﬁnetuned in the process of writing this paper."
+      },
+      {
+        "rank": 2,
+        "source": "07_cot.pdf",
+        "page": 17,
+        "is_correct_source": true,
+        "content": "A.3 Will chain-of-thought prompting improve performance for my task of interest?\nWhile chain-of-thought prompting is in principle applicable for any text-to-text task, it is more\nhelpful for some tasks than others. Based on the experiments in this paper, our intuition is that chain\nof thought helps the most when three conditions are met: (1) the task is challenging and requires\n18"
+      },
+      {
+        "rank": 3,
+        "source": "07_cot.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "3. Third, chain-of-thought reasoning can be used for tasks such as math word problems,\ncommonsense reasoning, and symbolic manipulation, and is potentially applicable (at least\nin principle) to any task that humans can solve via language.\n4. Finally, chain-of-thought reasoning can be readily elicited in sufﬁciently large off-the-shelf\nlanguage models simply by including examples of chain of thought sequences into the\nexemplars of few-shot prompting."
+      },
+      {
+        "rank": 4,
+        "source": "07_cot.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "tasks, given a prompt that consists of triples:⟨input, chain of thought, output⟩. A chain of thought is\na series of intermediate natural language reasoning steps that lead to the ﬁnal output, and we refer to\nthis approach as chain-of-thought prompting. An example prompt is shown in Figure 1.\nWe present empirical evaluations on arithmetic, commonsense, and symbolic reasoning benchmarks,\nshowing that chain-of-thought prompting outperforms standard prompting, sometimes to a striking"
+      },
+      {
+        "rank": 5,
+        "source": "07_cot.pdf",
+        "page": 17,
+        "is_correct_source": true,
+        "content": "which enables us to investigate whether chain of thought still works with reasoning chains from an\nindependent source without a background in machine learning. So we randomly sampled three sets\nof eight exemplars with chains of thought from GSM8K. These chain of thought annotations also\noutperformed the baseline by a large margin for all four arithmetic datasets (Table 6), indicating\nthat chain of thought is not dependent on a particular set of annotators."
+      }
+    ]
+  },
+  {
+    "id": "Q27",
+    "question": "What are the three in-context learning settings evaluated in GPT-3 besides fine-tuning?",
+    "expected_keywords": [
+      "zero-shot",
+      "one-shot",
+      "few-shot"
+    ],
+    "expected_files": [
+      "04_gpt3.pdf"
+    ],
+    "answer": "The three in-context learning settings evaluated in GPT-3, besides fine-tuning, are: (a) \"few-shot learning,\" where as many demonstrations as will fit into the model’s context window are allowed; (b) \"one-shot learning,\" where only one demonstration is provided; and (c) \"zero-shot learning,\" where no demonstrations are allowed and only an instruction in natural language is given to the model [Source 2][Source 3].",
+    "keyword_hit": true,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "04_gpt3.pdf",
+        "page": 17,
+        "is_correct_source": true,
+        "content": "set.\nOn OpenBookQA [MCKS18], GPT-3 improves signiﬁcantly from zero to few shot settings but is still over 20 points\nshort of the overall SOTA. GPT-3’s few-shot performance is similar to a ﬁne-tuned BERT Large baseline on the\nleaderboard.\nOverall, in-context learning with GPT-3 shows mixed results on commonsense reasoning tasks, with only small and\ninconsistent gains observed in the one and few-shot learning settings for both PIQA and ARC, but a signiﬁcant"
+      },
+      {
+        "rank": 2,
+        "source": "04_gpt3.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "where we allow only one demonstration, and (c) “zero-shot” learning, where no demonstrations are allowed and only\nan instruction in natural language is given to the model. GPT-3 could also in principle be evaluated in the traditional\nﬁne-tuning setting, but we leave this to future work.\nFigure 1.2 illustrates the conditions we study, and shows few-shot learning of a simple task requiring the model to"
+      },
+      {
+        "rank": 3,
+        "source": "04_gpt3.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "GPT-3, and measuring its in-context learning abilities. Speciﬁcally, we evaluate GPT-3 on over two dozen NLP datasets,\nas well as several novel tasks designed to test rapid adaptation to tasks unlikely to be directly contained in the training\nset. For each task, we evaluate GPT-3 under 3 conditions: (a) “few-shot learning”, or in-context learning where we\nallow as many demonstrations as will ﬁt into the model’s context window (typically 10 to 100), (b) “one-shot learning”,"
+      },
+      {
+        "rank": 4,
+        "source": "04_gpt3.pdf",
+        "page": 5,
+        "is_correct_source": true,
+        "content": "that we will be evaluating GPT-3 on or could in principle evaluate GPT-3 on. These settings can be seen as lying on a\nspectrum of how much task-speciﬁc data they tend to rely on. Speciﬁcally, we can identify at least four points on this\nspectrum (see Figure 2.1 for an illustration):\n• Fine-Tuning (FT) has been the most common approach in recent years, and involves updating the weights of\na pre-trained model by training on a supervised dataset speciﬁc to the desired task. Typically thousands to"
+      },
+      {
+        "rank": 5,
+        "source": "04_gpt3.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "gradient updates or ﬁne-tuning, just increasing numbers of demonstrations given as conditioning.\nBroadly, on NLP tasks GPT-3 achieves promising results in the zero-shot and one-shot settings, and in the the few-shot\nsetting is sometimes competitive with or even occasionally surpasses state-of-the-art (despite state-of-the-art being held\nby ﬁne-tuned models). For example, GPT-3 achieves 81.5 F1 on CoQA in the zero-shot setting, 84.0 F1 on CoQA in"
+      }
+    ]
+  },
+  {
+    "id": "Q28",
+    "question": "What sequence-to-sequence model does RAG use as its generator, and what is the dimension of the dense passage embeddings used in DPR?",
+    "expected_keywords": [
+      "BART",
+      "768"
+    ],
+    "expected_files": [
+      "03_rag.pdf",
+      "06_dpr.pdf"
+    ],
+    "answer": "RAG uses the BART model as its sequence-to-sequence generator [Source 2]. However, the sources do not provide information about the dimension of the dense passage embeddings used in DPR. Therefore, I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "03_rag.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "N∏\ni\n∑\nz∈top-k(p(·|x))\npη(z|x)pθ(yi|x,z,y 1:i−1)\nFinally, we note that RAG can be used for sequence classiﬁcation tasks by considering the target class\nas a target sequence of length one, in which case RAG-Sequence and RAG-Token are equivalent.\n2.2 Retriever: DPR\nThe retrieval componentpη(z|x) is based on DPR [26]. DPR follows a bi-encoder architecture:\npη(z|x)∝ exp\n(\nd(z)⊤q(x)\n)\nd(z) = BERTd(z), q(x) = BERTq(x)"
+      },
+      {
+        "rank": 2,
+        "source": "03_rag.pdf",
+        "page": 1,
+        "is_correct_source": true,
+        "content": "We build RAG models where the parametric memory is a pre-trained seq2seq transformer, and the\nnon-parametric memory is a dense vector index of Wikipedia, accessed with a pre-trained neural\nretriever. We combine these components in a probabilistic model trained end-to-end (Fig. 1). The\nretriever (Dense Passage Retriever [26], henceforth DPR) provides latent documents conditioned on\nthe input, and the seq2seq model (BART [32]) then conditions on these latent documents together with"
+      },
+      {
+        "rank": 3,
+        "source": "03_rag.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "byθ that generates a current token based on a context of the previousi− 1 tokensy1:i−1, the original\ninputx and a retrieved passagez.\nTo train the retriever and generator end-to-end, we treat the retrieved document as a latent variable.\nWe propose two models that marginalize over the latent documents in different ways to produce a\ndistribution over generated text. In one approach, RAG-Sequence, the model uses the same document"
+      },
+      {
+        "rank": 4,
+        "source": "03_rag.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "to predict each target token. The second approach, RAG-Token, can predict each target token based\non a different document. In the following, we formally introduce both models and then describe the\npη andpθ components, as well as the training and decoding procedure.\n2.1 Models\nRAG-Sequence Model The RAG-Sequence model uses the same retrieved document to generate\nthe complete sequence. Technically, it treats the retrieved document as a single latent variable that"
+      },
+      {
+        "rank": 5,
+        "source": "03_rag.pdf",
+        "page": 3,
+        "is_correct_source": true,
+        "content": "2.5 Decoding\nAt test time, RAG-Sequence and RAG-Token require different ways to approximatearg maxyp(y|x).\nRAG-Token The RAG-Token model can be seen as a standard, autoregressive seq2seq genera-\ntor with transition probability: p′\nθ(yi|x,y 1:i−1) = ∑\nz∈top-k(p(·|x))pη(zi|x)pθ(yi|x,zi,y 1:i−1) To\ndecode, we can plugp′\nθ(yi|x,y 1:i−1) into a standard beam decoder.\nRAG-Sequence For RAG-Sequence, the likelihoodp(y|x) does not break into a conventional per-"
+      }
+    ]
+  },
+  {
+    "id": "Q29",
+    "question": "What reinforcement learning algorithm does InstructGPT use to fine-tune the policy, and what is the largest GPT-3 model size that InstructGPT builds on?",
+    "expected_keywords": [
+      "PPO",
+      "175"
+    ],
+    "expected_files": [
+      "05_instructgpt.pdf",
+      "04_gpt3.pdf"
+    ],
+    "answer": "InstructGPT uses reinforcement learning from human feedback (RLHF) to fine-tune the policy [Source 1]. The largest GPT-3 model size that InstructGPT builds on is 175 billion parameters [Source 2].",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "05_instructgpt.pdf",
+        "page": 0,
+        "is_correct_source": true,
+        "content": "of the desired model behavior, which we use to ﬁne-tune GPT-3 using supervised\nlearning. We then collect a dataset of rankings of model outputs, which we use to\nfurther ﬁne-tune this supervised model using reinforcement learning from human\nfeedback. We call the resulting models InstructGPT. In human evaluations on\nour prompt distribution, outputs from the 1.3B parameter InstructGPT model are\npreferred to outputs from the 175B GPT-3, despite having 100x fewer parameters."
+      },
+      {
+        "rank": 2,
+        "source": "05_instructgpt.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "on our method.\nsizes (1.3B, 6B, and 175B parameters), and all of our models use the GPT-3 architecture. Our main\nﬁndings are as follows:\nLabelers signiﬁcantly prefer InstructGPT outputs over outputs from GPT-3. On our test set,\noutputs from the 1.3B parameter InstructGPT model are preferred to outputs from the 175B GPT-3,\ndespite having over 100x fewer parameters. These models have the same architecture, and differ only"
+      },
+      {
+        "rank": 3,
+        "source": "05_instructgpt.pdf",
+        "page": 2,
+        "is_correct_source": true,
+        "content": "by the fact that InstructGPT is ﬁne-tuned on our human data. This result holds true even when we\nadd a few-shot prompt to GPT-3 to make it better at following instructions. Outputs from our 175B\nInstructGPT are preferred to 175B GPT-3 outputs 85± 3% of the time, and preferred 71± 4% of the\ntime to few-shot 175B GPT-3. InstructGPT models also generate more appropriate outputs according\nto our labelers, and more reliably follow explicit constraints in the instruction."
+      },
+      {
+        "rank": 4,
+        "source": "05_instructgpt.pdf",
+        "page": 14,
+        "is_correct_source": true,
+        "content": "Changing the KL model from the PPO init to GPT-3 gives similar results.\n4.3 Qualitative results\nInstructGPT models show promising generalization to instructions outside of the RLHF ﬁne-\ntuning distribution. In particular, we ﬁnd that InstructGPT shows ability to follow instructions\nin non-English languages, and perform summarization and question-answering for code. This is\n15"
+      },
+      {
+        "rank": 5,
+        "source": "05_instructgpt.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "We additionally compare InstructGPT to ﬁne-tuning 175B GPT-3 on the FLAN (Wei et al., 2021) and\nT0 (Sanh et al., 2021) datasets, which both consist of a variety of NLP tasks, combined with natural\nlanguage instructions for each task (the datasets differ in the NLP datasets included, and the style of\ninstructions used). We ﬁne-tune them on approximately 1 million examples respectively and choose\nthe checkpoint which obtains the highest reward model score on the validation set. See Appendix C"
+      }
+    ]
+  },
+  {
+    "id": "Q30",
+    "question": "What are the three released LLaMA 2 model sizes, and at what model parameter scale does chain-of-thought prompting show emergent reasoning ability?",
+    "expected_keywords": [
+      "7",
+      "13",
+      "70",
+      "100"
+    ],
+    "expected_files": [
+      "08_llama2.pdf",
+      "07_cot.pdf"
+    ],
+    "answer": "I don't have enough information to answer this question.",
+    "keyword_hit": false,
+    "source_hit": true,
+    "correct_chunks": 5,
+    "total_chunks": 5,
+    "retrieved_chunks": [
+      {
+        "rank": 1,
+        "source": "07_cot.pdf",
+        "page": 15,
+        "is_correct_source": true,
+        "content": "A Frequently Asked Questions\nA.1 Why does increasing model scale improve chain-of-thought prompting?\nThe ﬁnding that successful chain-of-thought reasoning predictably emerges only at certain model\nscales is intriguing. Scaling up language models has been shown to confer beneﬁts such as improved\nperformance and sample efﬁciency (Kaplan et al., 2020), but chain-of-thought reasoning is emergent\nin the sense that its success cannot be predicted only by extrapolating the performance of small scale"
+      },
+      {
+        "rank": 2,
+        "source": "07_cot.pdf",
+        "page": 20,
+        "is_correct_source": true,
+        "content": "Table 2: Standard prompting versus chain of thought prompting on ﬁve arithmetic reasoning bench-\nmarks. Note that chain of thought prompting is an emergent ability of model scale—it does not\npositively impact performance until used with a model of sufﬁcient scale.\nGSM8K SV AMP ASDiv AQuA MAWPS\nModel standard CoT standard CoT standard CoT standard CoT standard CoT\nUL2 20B 4.1 4.4 10.1 12.5 16.0 16.9 20.5 23.6 16.6 19.1\nLaMDA 420M 2.6 0.4 2.5 1.6 3.2 0.8 23.5 8.3 3.2 0.9"
+      },
+      {
+        "rank": 3,
+        "source": "07_cot.pdf",
+        "page": 8,
+        "is_correct_source": true,
+        "content": "The emergence of chain-of-thought reasoning as a result of model scale has been a prevailing theme\n(Wei et al., 2022b). For many reasoning tasks where standard prompting has a ﬂat scaling curve, chain-\nof-thought prompting leads to dramatically increasing scaling curves. Chain-of-thought prompting\nappears to expand the set of tasks that large language models can perform successfully—in other\nwords, our work underscores that standard prompting only provides a lower bound on the capabilities"
+      },
+      {
+        "rank": 4,
+        "source": "07_cot.pdf",
+        "page": 4,
+        "is_correct_source": true,
+        "content": "0\n20\n40\n60\nGSM8K\nsolve rate (%)\nLaMDA GPT PaLM\nStandard prompting\nChain-of-thought prompting\nPrior supervised best\n0\n20\n40\n60\n80\nSV AMP\nsolve rate (%)\n0.4 8 137\n0\n25\n50\n75\n100\nMAWPS\nsolve rate (%)\n0.4 7 175 8 62 540\nModel scale (# parameters in billions)\nFigure 4: Chain-of-thought prompting enables\nlarge language models to solve challenging math\nproblems. Notably, chain-of-thought reasoning\nis an emergent ability of increasing model scale.\nPrior best numbers are from Cobbe et al. (2021)"
+      },
+      {
+        "rank": 5,
+        "source": "07_cot.pdf",
+        "page": 21,
+        "is_correct_source": true,
+        "content": "Table 4: Standard prompting versus chain of thought prompting on ﬁve commonsense reasoning\nbenchmarks. Chain of thought prompting is an emergent ability of model scale—it does not positively\nimpact performance until used with a model of sufﬁcient scale.\nCSQA StrategyQA Date Sports SayCan\nModel standard CoT standard CoT standard CoT standard CoT standard CoT\nUL2 20B 34.2 51.4 59.0 53.3 13.5 14.0 57.9 65.3 20.0 41.7\nLaMDA 420M 20.1 19.2 46.4 24.9 1.9 1.6 50.0 49.7 7.5 7.5"
+      }
+    ]
+  }
+]

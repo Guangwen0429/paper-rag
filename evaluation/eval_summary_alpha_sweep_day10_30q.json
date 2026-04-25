@@ -1,0 +1,38 @@
+[
+  {
+    "mode": "rerank_weighted",
+    "k": 5,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "alpha": 0.0,
+    "total": 30,
+    "keyword_hit": 16,
+    "source_hit": 30,
+    "both_correct": 16,
+    "avg_routing_precision": 0.88
+  },
+  {
+    "mode": "rerank_weighted",
+    "k": 5,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "alpha": 0.3,
+    "total": 30,
+    "keyword_hit": 16,
+    "source_hit": 30,
+    "both_correct": 16,
+    "avg_routing_precision": 0.9
+  },
+  {
+    "mode": "rerank_weighted",
+    "k": 5,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "alpha": 0.5,
+    "total": 30,
+    "keyword_hit": 16,
+    "source_hit": 30,
+    "both_correct": 16,
+    "avg_routing_precision": 0.9
+  }
+]

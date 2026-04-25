@@ -33,14 +33,15 @@ from src.generator import generate_answer
 # 配置：要跑的实验组合
 # ============================================================
 EXPERIMENTS = [
-    # (retrieval_mode, k, chunk_size, chunk_overlap, alpha)
-    # Day 9 Exp J: weighted fusion of hybrid RRF + cross-encoder scores.
-    # Scan 5 alpha values at k=5 (tight window is where rerank matters most).
-    ("rerank_weighted", 5, 500, 50, 0.0),   # = pure hybrid baseline
+    # Day 10: Eval set expanded 15->30. Full alpha-sweep + 2 baselines for
+    # robustness analysis of the Day 9 alpha=0.7 finding on the larger eval set.
+    ("hybrid", 5, 500, 50, 0.0),                  # Day 6 best baseline
+    ("rerank", 5, 500, 50, 0.0),                  # Day 8 best baseline
+    ("rerank_weighted", 5, 500, 50, 0.0),         # alpha-sweep endpoint = pure hybrid
     ("rerank_weighted", 5, 500, 50, 0.3),
     ("rerank_weighted", 5, 500, 50, 0.5),
-    ("rerank_weighted", 5, 500, 50, 0.7),
-    ("rerank_weighted", 5, 500, 50, 1.0),   # = pure rerank baseline
+    ("rerank_weighted", 5, 500, 50, 0.7),         # Day 9 best (in 15q)
+    ("rerank_weighted", 5, 500, 50, 1.0),         # alpha-sweep endpoint = pure rerank
 ]
 PAPERS_DIR = "papers"
 
@@ -288,7 +289,7 @@ def main():
     print("=" * 83)
 
     # 保存汇总表（文件名包含日期标记，避免覆盖 Day 6 的汇总）
-    summary_file = project_root / "evaluation" / "eval_summary_all_day9.json"
+    summary_file = project_root / "evaluation" / "eval_summary_all_day10_30q.json"
     with open(summary_file, "w", encoding="utf-8") as f:
         json.dump(all_summaries, f, indent=2, ensure_ascii=False)
     print(f"\nSummary saved to: {summary_file.relative_to(project_root)}")

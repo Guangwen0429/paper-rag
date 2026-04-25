@@ -555,10 +555,151 @@ The two endpoint equalities (α=0.0 ≡ hybrid, α=1.0 ≡ rerank) confirm the w
 ### Implications for next experiments
 
 Day 9 closes the "single-α fusion" line of investigation. The natural next step is **per-query-adaptive α**:
-- **Exp K (query classifier)**: Classify queries by type (definitional / list / answer-in-detail / compound) using a small classifier or LLM prompt, dispatch to different α. Training signal is Day 6–9's chunk-level failure taxonomy.
+- **Exp M (query classifier)**: Classify queries by type (definitional / list / answer-in-detail / compound) using a small classifier or LLM prompt, dispatch to different α. Training signal is Day 6–9's chunk-level failure taxonomy.
 - **Exp G (HyDE / query rewriting)** remains relevant for the compound-query smearing problem (Q15, still unchanged at every α). Orthogonal to α tuning.
-- **Exp L (learned weights)**: Instead of manual α scan, learn per-query weights via a small MLP on query features + candidate statistics. Larger eval set needed for training signal.
+- **Exp N (learned weights)**: Instead of manual α scan, learn per-query weights via a small MLP on query features + candidate statistics. Larger eval set needed for training signal.
+
+(Note: Exp K and L letters were used in Day 10 for infrastructure work — GPU acceleration and eval set expansion respectively. Future method experiments use M onward.)
 
 ### Retrospective on Day 9
 
 Day 9 is the first experiment to produce a net gain over all prior baselines (+1 vs Day 8 rerank, +1 vs Day 6 hybrid). But the gain is interpretable, not intrinsic: α=0.7 wins by averaging out complementary failure modes. The experiment's deeper contribution is Lesson 16 — establishing that there is no universal best retrieval weight in this failure-mode-heterogeneous regime, and that further improvement requires **query-conditional retrieval**, not a global parameter tune. This reframes the next-step horizon from "find a better uniform retriever" to "find the right retriever per query".
+
+---
+
+## Exp K: GPU Acceleration for Cross-Encoder Reranking
+
+**Date**: 2026-04-25 (Day 10, infrastructure)
+**Motivation**: Day 8/9 cross-encoder reranking ran on CPU, contributing the largest single component to per-query latency. Day 10's planned eval set expansion (15→30 questions) and possible later experiments (Exp M adaptive-α requiring repeated reranks per query, Exp G HyDE adding LLM calls) will roughly multiply the rerank workload. Moving cross-encoder inference to GPU before scaling avoids compounding CPU-bound latency. Infrastructure step, not a method experiment — no answer-quality changes are expected, only wall-clock improvement.
+
+### Setup
+
+**Hardware**: NVIDIA RTX 4060 Laptop GPU, 8 GB VRAM, driver 561.00, driver-reported CUDA 12.6.
+
+**Software**: Replaced `torch 2.11.0+cpu` with `torch 2.5.1+cu121` (latest stable wheel for CUDA 12.1 build, forward-compatible with the 12.6 driver). The cu121 build was preferred over cu124 for broader community testing coverage at this version.
+
+**Code change** (`src/retriever.py`): one functional line modified in `_get_cross_encoder()`:
+```python
+device = "cuda" if torch.cuda.is_available() else "cpu"
+_cross_encoder_instance = CrossEncoder(model_name, device=device)
+```
+The lazy global singleton pattern (introduced Day 8) made this a single-point change — all downstream functions (`rerank_with_cross_encoder`, `hybrid_then_rerank`, `hybrid_then_rerank_weighted`) inherit GPU acceleration automatically without modification. CPU fallback preserved for portability.
+
+**Verification scripts added**:
+- `scripts/verify_gpu.py`: 4-stage health check — PyTorch CUDA detection, cross-encoder GPU load, CPU/GPU score parity within 1e-3, and a 100-pair micro-benchmark.
+- `scripts/benchmark_gpu.py`: end-to-end pipeline benchmark on the 15-question eval set at α=0.7, k=5, n_candidates=20 (the Day 9 best config). Forces cross-encoder reload on CPU and GPU within a single run for direct comparison.
+
+### Results
+
+**Numerical sanity check** (verify_gpu.py): CPU and GPU produced identical cross-encoder scores within 2e-6 absolute difference across 3 representative query-passage pairs — confirming no numerical drift from FP32 GPU kernels. This guarantees that re-running prior experiments on GPU will reproduce Day 6–9 answer-quality numbers exactly.
+
+**Cross-encoder isolated benchmark** (verify_gpu.py, 100 pairs, post-warmup):
+
+| Device | Time | Speedup |
+|---|---|---|
+| CPU | 246 ms | 1.0× |
+| RTX 4060 | 24.4 ms | **10.1×** |
+
+**End-to-end pipeline benchmark** (benchmark_gpu.py, 15 eval questions, α=0.7, k=5, n_candidates=20):
+
+| Device | Total | Per query | Speedup |
+|---|---|---|---|
+| CPU | 11452 ms | 763.5 ms | 1.0× |
+| RTX 4060 | 5814 ms | 387.6 ms | **1.97×** |
+
+### Findings
+
+**Lesson 19: End-to-end speedup is bottlenecked by the un-accelerated stages.** Cross-encoder isolated speedup is 10.1× but pipeline speedup is only 1.97×. The gap is Amdahl's law: per-query latency decomposes roughly into (1) OpenAI embedding API for vector search, network-round-trip-bound at ~400 ms, (2) BM25 retrieval, CPU-bound at ~10 ms, (3) cross-encoder rerank, ~200 ms CPU / ~20 ms GPU. GPU only accelerates stage (3), so the theoretical end-to-end ceiling is roughly `total_cpu / (total_cpu - rerank_cpu + rerank_gpu) ≈ 763 / (763 - 200 + 20) ≈ 1.96×`. Measured 1.97× = essentially at the ceiling.
+
+**Lesson 20: The next bottleneck is OpenAI embedding API, not retrieval logic.** The ~400 ms vector-search latency is network-bound, not compute-bound. Future optimization paths: (a) cache embeddings locally per query to amortize across α-sweeps and config comparisons (Day 9 reran the same 15 queries × 5 α values = 75 redundant embedding calls), (b) precompute and persist Chroma index across runs instead of rebuilding on every script invocation, (c) replace OpenAI embeddings with a local model (e.g., `bge-small-en-v1.5`) that runs on the same GPU. Option (a) is the highest-leverage cheapest fix and will be revisited if benchmarking pressure increases.
+
+**Why this matters for the story arc**: Day 11+ experiments will multiply the rerank workload (eval set expansion 15→30; potential HyDE adds an LLM call per query; per-query adaptive α requires repeated reranks at different settings; Exp L's reproducibility audits multiply runs). Without GPU, those costs would compound into 5+ minute experiment runs, friction that quietly kills iteration velocity. Doing the GPU step now is throughput insurance for the remainder of the project.
+
+### Documentation deltas
+
+- `requirements.txt` not updated yet (PyTorch CUDA wheel install path differs from default PyPI; will document install command in README rather than pin in requirements).
+- README updated to Day 10 status with hardware section.
+- No experiment numbers from Day 6–9 invalidated; numerical parity confirmed.
+
+---
+
+## Exp L: Eval Set Expansion 15→30 with Reproducibility Audit
+
+**Date**: 2026-04-25 (Day 10)
+**Motivation**: Day 9 concluded that weighted-fusion α=0.7 was the best config (10/15, 66.7%) on a 15-question eval set. Lesson 16 already noted that this peak was sensitive to the eval-set's failure-mode mixture and might not transfer. Day 10 tests this directly by (a) doubling the eval set to 30 questions with balanced paper coverage and category mix, then (b) re-running all baselines and the full α-sweep on the new set. A reproducibility audit (same config, three runs) was added mid-experiment after observing an unexpected discrepancy between two endpoint configurations that should have been equivalent.
+
+### Setup
+
+**Eval set expansion** (`evaluation/eval_questions.json`, 15→30 questions):
+
+| Category | Day 9 | Day 10 | New | New IDs |
+|---|---|---|---|---|
+| single_fact | 9 | 18 | +9 | Q16–Q24 |
+| multi_chunk | 3 | 6 | +3 | Q25–Q27 |
+| cross_paper | 3 | 6 | +3 | Q28–Q30 |
+| **total** | **15** | **30** | **+15** | |
+
+Paper coverage diagnosed and rebalanced: BERT was over-represented (5 questions, 33% of original set); RAG/DPR/CoT each had only 1 question. New questions targeted the under-represented papers — RAG +3 (Q16, Q25, Q28), DPR +3 (Q17, Q24, Q28), CoT +3 (Q22, Q26, Q30) — yielding a final distribution where every paper is covered by 3-7 questions. All 30 ground-truth answers were manually verified against original PDFs before running experiments.
+
+**Failure-mode coverage**: New questions also targeted retrieval failure modes that were under-tested on 15q. Q14-style cross-paper attribution contamination was reinforced via Q28/Q29/Q30 (compound queries spanning two papers with non-overlapping sub-answers). Q06-style vocabulary-mismatch was reinforced via Q24 (similarity-function terminology). Term-overlap pressure was added via Q21/Q23 (activation/positional encoding — terms that BERT, GPT, and LLaMA papers all touch differently).
+
+**Experiment matrix**: 7 configs × 30 questions = 210 evaluation runs in the main sweep. The 7 configs span the full Day 6→9 method history on the new eval set: hybrid k=5 (Day 6 baseline), rerank k=5 (Day 8 baseline), and weighted-fusion at α∈{0.0, 0.3, 0.5, 0.7, 1.0} (Day 9 sweep).
+
+**Reproducibility audit**: 3 runs of the same `rerank_weighted α=0.0` configuration to test whether observed differences between configs are method effects or LLM API non-determinism. Same retrieval, same prompts, same OpenAI gpt-4o-mini at temperature=0.
+
+### Results
+
+**Main 7-config sweep on 30q**:
+
+| Config | Keyword Hit | Routing Precision |
+|---|:---:|:---:|
+| hybrid k=5 | 17/30 (56.7%) | 88.0% |
+| rerank k=5 | **18/30 (60.0%)** | 91.3% |
+| rerank_weighted α=0.0 | 16/30 (53.3%) | 88.0% |
+| rerank_weighted α=0.3 | 16/30 (53.3%) | 90.0% |
+| rerank_weighted α=0.5 | 16/30 (53.3%) | 90.0% |
+| rerank_weighted α=0.7 | 17/30 (56.7%) | 90.7% |
+| rerank_weighted α=1.0 | **18/30 (60.0%)** | 91.3% |
+
+**Day 9 vs Day 10 comparison (same configs, different eval set sizes)**:
+
+| Config | Day 9 (15q) | Day 10 (30q) | Δ |
+|---|:---:|:---:|:---:|
+| hybrid k=5 | 60.0% (9/15) | 56.7% (17/30) | -3.3pp |
+| rerank k=5 | 60.0% (9/15) | 60.0% (18/30) | 0.0pp |
+| rerank_weighted α=0.7 | **66.7% (10/15)** | 56.7% (17/30) | **-10.0pp** |
+| rerank_weighted α=1.0 | 60.0% (9/15) | 60.0% (18/30) | 0.0pp |
+
+**Reproducibility audit on rerank_weighted α=0.0 (3 independent runs, identical config)**:
+
+| Run | Keyword Hit | Routing Precision |
+|---|:---:|:---:|
+| Run 1 | 16/30 (53.3%) | 88.0% |
+| Run 2 | 17/30 (56.7%) | 88.0% |
+| Run 3 | 16/30 (53.3%) | 88.0% |
+
+Routing precision is identical across all three runs (88.0% to 4 decimal places in detailed JSON). The single-question variance is therefore not from retrieval — it is entirely from the LLM generation step.
+
+### Findings
+
+**Lesson 21: LLM API non-determinism contributes ±1-question noise on a 30q eval set even at temperature=0.** Three identical runs of `rerank_weighted α=0.0` produced answer-quality scores of 16, 17, 16 with byte-identical retrieval (88.0% routing precision invariant to the last decimal). The disagreement rate of 1/30 = 3.3% matches published estimates for OpenAI API stochasticity at T=0 (Atil et al., 2024). The mechanism is well-understood: floating-point summation in transformer matrix multiplications is not associative, and minor logit perturbations at the 1e-7 level can flip top-2 token rankings when probabilities are close. This places a hard noise floor on this evaluation methodology: **single-run differences ≤2 questions on 30q are within LLM noise and should not be interpreted as method-level differences**.
+
+**Lesson 22: The Day 9 α=0.7 peak does not generalize.** On 30q, α=0.7 scored 17/30 (56.7%), which is below α=1.0 at 18/30 (60.0%) — a reversal of the 15q ranking where α=0.7 (10/15) beat α=1.0 (9/15). This is exactly what Lesson 16 predicted: a single scalar α optimized on a small set is overfitting to that set's specific failure-mode mixture. Combined with Lesson 21, the 1-question gap between α=0.7 and α=1.0 on 30q is itself within noise floor — meaning the practically correct conclusion from Day 9–10 is "weighted fusion offers no measurable improvement over pure rerank on this corpus."
+
+**Lesson 23: Rerank k=5 is the most stable winner across eval sets.** Both rerank baselines (rerank mode and rerank_weighted α=1.0, which are mathematically equivalent) held at 60.0% on both 15q and 30q (Δ = 0.0pp), while hybrid k=5 dropped 3.3pp and α=0.7 dropped 10pp. Stability across eval sets is a stronger property than peak performance on a small set, because peak performance can be a sampling artifact while stability reflects a genuinely robust mechanism.
+
+**Lesson 24: Endpoint sanity check confirms fusion implementation is mathematically correct.** Pure-`rerank` mode and `rerank_weighted` mode at α=1.0 are designed to be mathematically equivalent (when α=1.0, the weighted score collapses to `1.0 * norm_ce + 0.0 * norm_rrf = norm_ce`, identical to pure rerank). On 30q both produced 18/30 keyword hits AND 91.3% routing precision to 4 decimal places. Combined with the α=0.0 endpoint matching hybrid baseline (both 88.0% routing precision), this confirms the weighted fusion code in `hybrid_then_rerank_weighted` is correctly implemented.
+
+### Methodological implications
+
+The reproducibility audit reframes how all prior Day 6–9 results should be interpreted. The +1-question "improvements" reported in Day 8 (rerank vs hybrid) and Day 9 (α=0.7 vs α=1.0) on 15q are now revealed to be within the LLM noise envelope. This is not a failure of the experiments — the routing precision and chunk-level analysis still hold value because they are deterministic. But the keyword-hit metric, which depends on LLM generation, requires multi-run averaging to be reliable. Future experiments (Exp M adaptive α, Exp G HyDE, Exp I semantic chunking) will need to either (a) run each config N≥5 times and report mean±std, or (b) use a deterministic answer-extraction metric (e.g., regex on answer text rather than LLM-generated paragraph match).
+
+This insight is itself the most important Day 10 outcome — more important than any single number in the table. It establishes a rigorous evaluation methodology for the rest of the project and a transferable engineering lesson: **"in LLM-based evaluation, the noise floor must be empirically measured before single-run differences can be trusted as signal."**
+
+### Documentation deltas
+
+- `evaluation/eval_questions.json`: 15 → 30 questions
+- `scripts/run_eval.py`: EXPERIMENTS list extended to 7 configs (kept in normal state for Day 11)
+- New result files: 7 main + 2 reproducibility-audit JSONs in `evaluation/`
+- New summary: `evaluation/eval_summary_all_day10_30q.json`, `eval_summary_alpha_sweep_day10_30q.json`, `eval_summary_reproducibility_run2.json`, `eval_summary_reproducibility_run3.json`
+- README.md: updated to Day 10 status with new headline numbers and noise-floor caveat

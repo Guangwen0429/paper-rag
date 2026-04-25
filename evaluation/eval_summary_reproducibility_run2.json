@@ -1,0 +1,14 @@
+[
+  {
+    "mode": "rerank_weighted",
+    "k": 5,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "alpha": 0.0,
+    "total": 30,
+    "keyword_hit": 17,
+    "source_hit": 30,
+    "both_correct": 17,
+    "avg_routing_precision": 0.88
+  }
+]
