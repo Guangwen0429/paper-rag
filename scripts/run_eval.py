@@ -25,6 +25,7 @@ from src.retriever import (
     hybrid_retrieve,
     hybrid_then_rerank,
     hybrid_then_rerank_weighted,
+    hyde_then_rerank,
 )
 from src.generator import generate_answer
 
@@ -33,15 +34,20 @@ from src.generator import generate_answer
 # 配置：要跑的实验组合
 # ============================================================
 EXPERIMENTS = [
-    # Day 10: Eval set expanded 15->30. Full alpha-sweep + 2 baselines for
-    # robustness analysis of the Day 9 alpha=0.7 finding on the larger eval set.
-    ("hybrid", 5, 500, 50, 0.0),                  # Day 6 best baseline
-    ("rerank", 5, 500, 50, 0.0),                  # Day 8 best baseline
-    ("rerank_weighted", 5, 500, 50, 0.0),         # alpha-sweep endpoint = pure hybrid
-    ("rerank_weighted", 5, 500, 50, 0.3),
-    ("rerank_weighted", 5, 500, 50, 0.5),
-    ("rerank_weighted", 5, 500, 50, 0.7),         # Day 9 best (in 15q)
-    ("rerank_weighted", 5, 500, 50, 1.0),         # alpha-sweep endpoint = pure rerank
+    # Day 10 results already in eval_summary_all_day10_30q.json — skip to save cost
+    # ("hybrid", 5, 500, 50, 0.0),
+    # ("rerank", 5, 500, 50, 0.0),
+    # ("rerank_weighted", 5, 500, 50, 0.0),
+    # ("rerank_weighted", 5, 500, 50, 0.3),
+    # ("rerank_weighted", 5, 500, 50, 0.5),
+    # ("rerank_weighted", 5, 500, 50, 0.7),
+    # ("rerank_weighted", 5, 500, 50, 1.0),
+
+    # Day 11 (Exp G): HyDE x 3 runs (per Lesson 21 noise floor: N>=3 averaging
+    # before claiming method-level differences exceed +/-1 question noise envelope)
+    ("hyde_rerank", 5, 500, 50, 0.0),  # run 1
+    ("hyde_rerank", 5, 500, 50, 0.0),  # run 2
+    ("hyde_rerank", 5, 500, 50, 0.0),  # run 3
 ]
 PAPERS_DIR = "papers"
 
@@ -98,6 +104,11 @@ def retrieve(mode: str, vectorstore, bm25, chunks, question: str, k: int, alpha:
         return hybrid_then_rerank_weighted(
             vectorstore, bm25, chunks, question,
             k=k, n_candidates=20, alpha=alpha,
+        )
+    elif mode == "hyde_rerank":
+        return hyde_then_rerank(
+            vectorstore, bm25, chunks, question,
+            k=k, n_candidates=20,
         )
     else:
         raise ValueError(f"Unknown retrieval mode: {mode}")
@@ -165,7 +176,7 @@ def evaluate_single(
 # 跑一组实验
 # ============================================================
 
-def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k, chunk_size, chunk_overlap, alpha=0.5):
+def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k, chunk_size, chunk_overlap, alpha=0.5, run_id=None):
     print("\n" + "#" * 70)
     print(f"# EXPERIMENT: mode={mode}, k={k}, chunk_size={chunk_size}, chunk_overlap={chunk_overlap}")
     print("#" * 70)
@@ -214,12 +225,13 @@ def run_one_experiment(vectorstore, bm25, chunks, questions, mode, k, chunk_size
     print(f"Avg chunk routing precision:  {avg_routing_precision*100:.1f}%")
     print("=" * 70)
 
-    # 保存详细结果（文件名包含 chunk_size，避免覆盖不同参数的结果）
+    # 保存详细结果（文件名包含 chunk_size，run_id 区分多次重跑——Day 11 引入）
     n_questions = len(results)
+    run_suffix = f"_run{run_id}" if run_id is not None else ""
     if mode == "rerank_weighted":
-        output_filename = f"eval_results_{mode}_k{k}_cs{chunk_size}_a{alpha}_{n_questions}q.json"
+        output_filename = f"eval_results_{mode}_k{k}_cs{chunk_size}_a{alpha}_{n_questions}q{run_suffix}.json"
     else:
-        output_filename = f"eval_results_{mode}_k{k}_cs{chunk_size}_{n_questions}q.json"
+        output_filename = f"eval_results_{mode}_k{k}_cs{chunk_size}_{n_questions}q{run_suffix}.json"
     output_file = project_root / "evaluation" / output_filename
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
@@ -264,13 +276,28 @@ def main():
         return vectorstore, bm25, chunks
 
     # 3. 依次跑每组实验
+    # 检测同一个配置是否出现多次：如果是，给每次跑加 run_id 区分输出文件
+    from collections import Counter
+    config_counts = Counter(EXPERIMENTS)
+    config_seen = Counter()
+
     all_summaries = []
     for mode, k, chunk_size, chunk_overlap, alpha in EXPERIMENTS:
+        config = (mode, k, chunk_size, chunk_overlap, alpha)
+        # 如果某个配置出现多次（多 run 重跑），给每次加编号；只出现一次的配置 run_id=None
+        if config_counts[config] > 1:
+            config_seen[config] += 1
+            run_id = config_seen[config]
+        else:
+            run_id = None
+
         vectorstore, bm25, chunks = get_or_build_index(chunk_size, chunk_overlap)
         summary = run_one_experiment(
             vectorstore, bm25, chunks, questions,
-            mode, k, chunk_size, chunk_overlap, alpha,
+            mode, k, chunk_size, chunk_overlap, alpha, run_id=run_id,
         )
+        # 把 run_id 也存进 summary，方便后续分析
+        summary["run_id"] = run_id
         all_summaries.append(summary)
 
     # 4. 最后打印对比表
@@ -281,15 +308,16 @@ def main():
     print("-" * 83)
     for s in all_summaries:
         alpha_str = f" a={s.get('alpha', '-')}" if s['mode'] == 'rerank_weighted' else ""
-        config = f"{s['mode']} k={s['k']} cs={s['chunk_size']}{alpha_str}"
+        run_str = f" run={s.get('run_id')}" if s.get('run_id') is not None else ""
+        config = f"{s['mode']} k={s['k']} cs={s['chunk_size']}{alpha_str}{run_str}"
         kw = f"{s['keyword_hit']}/{s['total']} ({s['keyword_hit'] / s['total'] * 100:.1f}%)"
         src = f"{s['source_hit']}/{s['total']} ({s['source_hit'] / s['total'] * 100:.1f}%)"
         prec = f"{s['avg_routing_precision'] * 100:.1f}%"
         print(f"{config:<40} {kw:<20} {src:<20} {prec:<15}")
     print("=" * 83)
 
-    # 保存汇总表（文件名包含日期标记，避免覆盖 Day 6 的汇总）
-    summary_file = project_root / "evaluation" / "eval_summary_all_day10_30q.json"
+    # 保存汇总表（Day 11 重跑专用名）
+    summary_file = project_root / "evaluation" / "eval_summary_hyde_reproducibility_day11_30q.json"
     with open(summary_file, "w", encoding="utf-8") as f:
         json.dump(all_summaries, f, indent=2, ensure_ascii=False)
     print(f"\nSummary saved to: {summary_file.relative_to(project_root)}")

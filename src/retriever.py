@@ -17,6 +17,7 @@ from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from rank_bm25 import BM25Okapi
+from openai import OpenAI
 from sentence_transformers import CrossEncoder
 
 
@@ -381,6 +382,134 @@ def hybrid_then_rerank_weighted(
 
     return [doc for doc, score in scored_docs[:k]]
 
+# ============================================================
+# HyDE Retrieval (Exp G)：用假想答案做向量检索
+# ============================================================
+
+_HYDE_PROMPT = """You are an expert in NLP and machine learning research. Given the following question, write a single paragraph (3-5 sentences) that directly answers it, written in the style of a research paper passage. Use technical vocabulary appropriate to the field. Do not preface, hedge, or apologize. Output only the passage.
+
+Question: {query}
+
+Passage:"""
+
+# 全局单例：OpenAI client 复用，避免每次调用重新建立连接
+_openai_client_instance = None
+
+
+def _get_openai_client() -> OpenAI:
+    """懒加载 OpenAI client，缓存到全局变量。"""
+    global _openai_client_instance
+    if _openai_client_instance is None:
+        _openai_client_instance = OpenAI()
+    return _openai_client_instance
+
+
+def generate_hyde_passage(
+        question: str,
+        model: str = "gpt-4o-mini",
+        max_tokens: int = 200,
+) -> str:
+    """
+    用 LLM 生成假想答案 passage（Hypothetical Document Embeddings, Gao et al. 2022）。
+
+    HyDE 的核心思想：
+      query 和 document chunk 在向量空间里有"信息密度不对称" —— query 短而抽象，
+      document 长而具体。embedding 模型对这两种文本的对齐能力有限。HyDE 让 LLM
+      "假装回答"问题，生成一段风格接近论文的 passage，用它做向量检索的"诱饵"，
+      让检索向量落到论文风格的语义空间附近。
+
+    重要：生成的 passage 仅用于检索，不参与最终答案生成。LLM 在这一步可以编错
+    （比如杜撰一个不存在的论文），只要总体语义方向对就有效。
+
+    参数：
+        question: 用户原始问题
+        model: 用来生成 passage 的 LLM（默认 gpt-4o-mini，便宜够用）
+        max_tokens: 限制生成长度，避免过长 passage 把检索向量带偏
+
+    返回：
+        3-5 句话的假想答案 passage（字符串）
+    """
+    client = _get_openai_client()
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": _HYDE_PROMPT.format(query=question)}],
+        temperature=0,
+        max_tokens=max_tokens,
+    )
+    return response.choices[0].message.content.strip()
+
+
+def hyde_then_rerank(
+        vectorstore: Chroma,
+        bm25: BM25Okapi,
+        chunks: List[Document],
+        question: str,
+        k: int = 3,
+        n_candidates: int = 20,
+) -> List[Document]:
+    """
+    HyDE-augmented 检索管线（Exp G，Day 11）。
+
+    流程：
+      1. LLM 用原 question 生成假想 passage
+      2. 向量检索用假想 passage 召回（不是原 question！）
+      3. BM25 检索用原 question 召回（HyDE 对 BM25 词袋无帮助，反而引入噪声）
+      4. RRF 融合两路召回
+      5. Cross-encoder 用原 question 精排（reranker 训练目标是 query-passage 对，
+         不是 passage-passage 对）
+
+    设计要点：
+      - hypothetical passage 仅活在 step 1→2 之间，下游全用原 question
+      - 简历承诺（Day 11）：缓解 compound query 语义稀释问题（Q15）
+
+    参数：
+        vectorstore, bm25, chunks: 两种索引
+        question: 用户原始问题
+        k: 最终返回的 chunk 数
+        n_candidates: 召回阶段每路取多少候选
+
+    返回：
+        top-k chunks（cross-encoder 排序）
+    """
+    # ========== Step 1: 生成假想答案 ==========
+    hyde_passage = generate_hyde_passage(question)
+
+    # ========== Step 2: 向量检索用 hyde_passage（不是 question！）==========
+    vector_docs = retrieve_chunks(vectorstore, hyde_passage, k=n_candidates)
+
+    # ========== Step 3: BM25 检索用原 question ==========
+    bm25_docs = bm25_retrieve(bm25, chunks, question, k=n_candidates)
+
+    # ========== Step 4: RRF 融合（复用 hybrid_retrieve 的逻辑）==========
+    def doc_id(doc: Document) -> str:
+        source = doc.metadata.get("source", "")
+        page = doc.metadata.get("page", "")
+        preview = doc.page_content[:100]
+        return f"{source}|{page}|{preview}"
+
+    rrf_k_const = 60
+    rrf_scores = {}
+    doc_lookup = {}
+
+    for rank, doc in enumerate(vector_docs, start=1):
+        did = doc_id(doc)
+        rrf_scores[did] = rrf_scores.get(did, 0) + 1.0 / (rrf_k_const + rank)
+        doc_lookup[did] = doc
+
+    for rank, doc in enumerate(bm25_docs, start=1):
+        did = doc_id(doc)
+        rrf_scores[did] = rrf_scores.get(did, 0) + 1.0 / (rrf_k_const + rank)
+        doc_lookup[did] = doc
+
+    sorted_ids = sorted(rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True)[:n_candidates]
+    candidates = [doc_lookup[did] for did in sorted_ids]
+
+    if len(candidates) == 0:
+        return []
+
+    # ========== Step 5: Cross-encoder 用原 question 精排 ==========
+    return rerank_with_cross_encoder(candidates, question, k=k)
+
 
 # ============================================================
 # 测试代码：单独运行 `python -m src.retriever` 时执行
@@ -419,6 +548,16 @@ if __name__ == "__main__":
 
     print("\n--- Hybrid 检索 (k=3, RRF) ---")
     for i, doc in enumerate(hybrid_retrieve(vs, bm25, chunks, question, k=3), 1):
+        source = doc.metadata.get("source", "?")
+        page = doc.metadata.get("page_label", "?")
+        preview = doc.page_content[:100].replace("\n", " ")
+        print(f"[{i}] {source}, 第 {page} 页: {preview}...")
+
+    print("\n--- HyDE Retrieval (k=3) ---")
+    print("[预览] 生成假想答案 passage...")
+    hyde_passage = generate_hyde_passage(question)
+    print(f"[HyDE passage]: {hyde_passage}\n")
+    for i, doc in enumerate(hyde_then_rerank(vs, bm25, chunks, question, k=3), 1):
         source = doc.metadata.get("source", "?")
         page = doc.metadata.get("page_label", "?")
         preview = doc.page_content[:100].replace("\n", " ")
