@@ -3,240 +3,393 @@
     "id": "Q01",
     "category": "single_fact",
     "question": "What is the hidden size (embedding dimension) of BERT-base?",
-    "expected_answer_keywords": ["768"],
-    "expected_source_files": ["02_bert.pdf"],
+    "expected_answer_keywords": [
+      "768"
+    ],
+    "expected_source_files": [
+      "02_bert.pdf"
+    ],
     "notes": "BERT paper Section 3.1: BERT_BASE (L=12, H=768, A=12, Total Parameters=110M)"
   },
   {
     "id": "Q02",
     "category": "single_fact",
     "question": "How many attention heads does the base Transformer model use?",
-    "expected_answer_keywords": ["8"],
-    "expected_source_files": ["01_transformer.pdf"],
+    "expected_answer_keywords": [
+      "8"
+    ],
+    "expected_source_files": [
+      "01_transformer.pdf"
+    ],
     "notes": "Transformer paper Section 3.2.2: 'we employ h = 8 parallel attention layers, or heads'. Confirmed in Table 3 base row."
   },
   {
     "id": "Q03",
     "category": "single_fact",
     "question": "What is the model dimension (d_model) of the base Transformer?",
-    "expected_answer_keywords": ["512"],
-    "expected_source_files": ["01_transformer.pdf"],
+    "expected_answer_keywords": [
+      "512"
+    ],
+    "expected_source_files": [
+      "01_transformer.pdf"
+    ],
     "notes": "Transformer paper Section 3.1, Section 3.3, and Table 3 base row: d_model = 512."
   },
   {
     "id": "Q04",
     "category": "single_fact",
     "question": "How many parameters does the largest GPT-3 model (GPT-3 175B) have?",
-    "expected_answer_keywords": ["175"],
-    "expected_source_files": ["04_gpt3.pdf"],
+    "expected_answer_keywords": [
+      "175"
+    ],
+    "expected_source_files": [
+      "04_gpt3.pdf"
+    ],
     "notes": "GPT-3 paper Table 2.1: GPT-3 175B or 'GPT-3' has 175.0B parameters."
   },
   {
     "id": "Q05",
     "category": "single_fact",
     "question": "What is the largest model size in the LLaMA 2 family?",
-    "expected_answer_keywords": ["70"],
-    "expected_source_files": ["08_llama2.pdf"],
+    "expected_answer_keywords": [
+      "70"
+    ],
+    "expected_source_files": [
+      "08_llama2.pdf"
+    ],
     "notes": "LLaMA 2 paper Introduction: 'LLAMA 2 and LLAMA 2-CHAT, at scales up to 70B parameters'."
   },
   {
     "id": "Q06",
     "category": "single_fact",
     "question": "What architecture does DPR use as its question and passage encoder?",
-    "expected_answer_keywords": ["BERT"],
-    "expected_source_files": ["06_dpr.pdf"],
+    "expected_answer_keywords": [
+      "BERT"
+    ],
+    "expected_source_files": [
+      "06_dpr.pdf"
+    ],
     "notes": "DPR paper Section 3 Encoders: 'we use two independent BERT (Devlin et al., 2019) networks (base, uncased)'."
   },
   {
     "id": "Q07",
     "category": "single_fact",
     "question": "What generator (sequence-to-sequence) model does the RAG paper use?",
-    "expected_answer_keywords": ["BART"],
-    "expected_source_files": ["03_rag.pdf"],
+    "expected_answer_keywords": [
+      "BART"
+    ],
+    "expected_source_files": [
+      "03_rag.pdf"
+    ],
     "notes": "RAG paper Section 2.3 Generator: 'We use BART-large, a pre-trained seq2seq transformer with 400M parameters.' Note: DPR is the retriever; BART is the generator — do not confuse."
   },
   {
     "id": "Q08",
     "category": "single_fact",
     "question": "What reinforcement learning algorithm is used to fine-tune InstructGPT?",
-    "expected_answer_keywords": ["PPO"],
-    "expected_source_files": ["05_instructgpt.pdf"],
+    "expected_answer_keywords": [
+      "PPO"
+    ],
+    "expected_source_files": [
+      "05_instructgpt.pdf"
+    ],
     "notes": "InstructGPT paper Section 3.1 Step 3: 'Optimize a policy against the reward model using PPO... using the PPO algorithm (Schulman et al., 2017).'"
   },
   {
     "id": "Q09",
     "category": "single_fact",
     "question": "On which arithmetic word problem benchmark does chain-of-thought prompting show the largest improvement in the Wei et al. paper?",
-    "expected_answer_keywords": ["GSM8K"],
-    "expected_source_files": ["07_cot.pdf"],
+    "expected_answer_keywords": [
+      "GSM8K"
+    ],
+    "expected_source_files": [
+      "07_cot.pdf"
+    ],
     "notes": "CoT paper Section 3 Arithmetic Reasoning: GSM8K is the flagship benchmark, described as 'the challenging GSM8K benchmark'. Section 3.2 Results: 'for GSM8K (the dataset with the lowest baseline performance), performance more than doubled for the largest GPT and PaLM models' — the largest quantitative gain among all arithmetic benchmarks tested."
   },
   {
     "id": "Q10",
     "category": "multi_chunk",
     "question": "What are the two pre-training objectives used in BERT?",
-    "expected_answer_keywords": ["masked", "next sentence"],
-    "expected_source_files": ["02_bert.pdf"],
+    "expected_answer_keywords": [
+      "masked",
+      "next sentence"
+    ],
+    "expected_source_files": [
+      "02_bert.pdf"
+    ],
     "notes": "BERT paper Section 3.1 Pre-training BERT: 'Task #1: Masked LM' (MLM) and 'Task #2: Next Sentence Prediction (NSP)'. Requires synthesizing two separate subsections of §3.1."
   },
   {
     "id": "Q11",
     "category": "multi_chunk",
     "question": "What are the three model sizes released in the LLaMA 2 family?",
-    "expected_answer_keywords": ["7", "13", "70"],
-    "expected_source_files": ["08_llama2.pdf"],
+    "expected_answer_keywords": [
+      "7",
+      "13",
+      "70"
+    ],
+    "expected_source_files": [
+      "08_llama2.pdf"
+    ],
     "notes": "LLaMA 2 paper Introduction: 'We are releasing variants of Llama 2 with 7B, 13B, and 70B parameters. We have also trained 34B variants... but are not releasing.' Footnote: 34B was delayed due to insufficient red-teaming time. Table 1 lists all 4 trained sizes. Answer is 7/13/70 because the question asks about released sizes."
   },
   {
     "id": "Q12",
     "category": "multi_chunk",
     "question": "What are the three main training steps in the InstructGPT pipeline?",
-    "expected_answer_keywords": ["supervised", "reward", "PPO"],
-    "expected_source_files": ["05_instructgpt.pdf"],
+    "expected_answer_keywords": [
+      "supervised",
+      "reward",
+      "PPO"
+    ],
+    "expected_source_files": [
+      "05_instructgpt.pdf"
+    ],
     "notes": "InstructGPT paper Section 3.1 High-level methodology: Step 1 = supervised fine-tuning (SFT); Step 2 = reward model training; Step 3 = PPO. All three steps appear as bolded subheadings in §3.1 and are visualized in Figure 2."
   },
   {
     "id": "Q13",
     "category": "cross_paper",
     "question": "How many total parameters does BERT-large have, and how many does the largest GPT-3 model have?",
-    "expected_answer_keywords": ["340", "175"],
-    "expected_source_files": ["02_bert.pdf", "04_gpt3.pdf"],
+    "expected_answer_keywords": [
+      "340",
+      "175"
+    ],
+    "expected_source_files": [
+      "02_bert.pdf",
+      "04_gpt3.pdf"
+    ],
     "notes": "BERT paper Section 3: 'BERT_LARGE (L=24, H=1024, A=16, Total Parameters=340M)'. GPT-3 paper Table 2.1: largest row is 'GPT-3 175B or GPT-3', 175.0B params. Requires retrieval to fetch chunks from both papers."
   },
   {
     "id": "Q14",
     "category": "cross_paper",
     "question": "How many attention heads does the base Transformer model use, and how many does BERT-base use?",
-    "expected_answer_keywords": ["8", "12"],
-    "expected_source_files": ["01_transformer.pdf", "02_bert.pdf"],
+    "expected_answer_keywords": [
+      "8",
+      "12"
+    ],
+    "expected_source_files": [
+      "01_transformer.pdf",
+      "02_bert.pdf"
+    ],
     "notes": "Transformer paper Section 3.2.2: base model h=8 heads. BERT paper Section 3: BERT_BASE A=12 heads. Stress-tests the Day 5 Q02 context-contamination case — i.e., when both chunks are in context, does the generator correctly attribute 8 to Transformer and 12 to BERT?"
   },
   {
     "id": "Q15",
     "category": "cross_paper",
     "question": "What is the training task/objective of the original Transformer (Vaswani et al. 2017), and what are the pre-training objectives of BERT?",
-    "expected_answer_keywords": ["translation", "masked", "next sentence"],
-    "expected_source_files": ["01_transformer.pdf", "02_bert.pdf"],
+    "expected_answer_keywords": [
+      "translation",
+      "masked",
+      "next sentence"
+    ],
+    "expected_source_files": [
+      "01_transformer.pdf",
+      "02_bert.pdf"
+    ],
     "notes": "Transformer paper Abstract: 'Experiments on two machine translation tasks... 28.4 BLEU on the WMT 2014 English-to-German translation task.' BERT paper Section 3.1: pre-trained with MLM and NSP. The two halves of the answer are fully non-overlapping across sources — Transformer paper does not discuss MLM/NSP, and BERT paper does not discuss WMT translation. This is the strictest cross-paper routing test in the eval set."
   },
   {
     "id": "Q16",
     "category": "single_fact",
     "question": "What dataset does the RAG paper use as its non-parametric memory (knowledge source) for retrieval?",
-    "expected_answer_keywords": ["Wikipedia"],
-    "expected_source_files": ["03_rag.pdf"],
+    "expected_answer_keywords": [
+      "Wikipedia"
+    ],
+    "expected_source_files": [
+      "03_rag.pdf"
+    ],
     "notes": "RAG paper Section 3 Experiments: 'we use a single Wikipedia dump for our non-parametric knowledge source. Following Lee et al. and Karpukhin et al., we use the December 2018 dump.'"
   },
   {
     "id": "Q17",
     "category": "single_fact",
     "question": "What is the dimension of the dense passage embeddings used in DPR?",
-    "expected_answer_keywords": ["768"],
-    "expected_source_files": ["06_dpr.pdf"],
+    "expected_answer_keywords": [
+      "768"
+    ],
+    "expected_source_files": [
+      "06_dpr.pdf"
+    ],
     "notes": "DPR paper Section 3 Encoders: 'we use two independent BERT (base, uncased) networks and take the representation at the [CLS] token as the output, so d = 768'. NOTE: 768 is also BERT-base's hidden size (Q01), so retrieval routing must distinguish DPR paper from BERT paper."
   },
   {
     "id": "Q18",
     "category": "single_fact",
     "question": "How many in-context examples (shots) does the few-shot setting in the GPT-3 paper typically use?",
-    "expected_answer_keywords": ["10", "100"],
-    "expected_source_files": ["04_gpt3.pdf"],
+    "expected_answer_keywords": [
+      "10",
+      "100"
+    ],
+    "expected_source_files": [
+      "04_gpt3.pdf"
+    ],
     "notes": "GPT-3 paper Section 2 Approach (Few-Shot subsection): 'We typically set K in the range of 10 to 100 as this is how many examples can fit in the model's context window (n_ctx = 2048).' Both 10 and 100 are valid keyword hits."
   },
   {
     "id": "Q19",
     "category": "single_fact",
     "question": "What is the context window size (sequence length) used during pre-training of LLaMA 2?",
-    "expected_answer_keywords": ["4096"],
-    "expected_source_files": ["08_llama2.pdf"],
+    "expected_answer_keywords": [
+      "4096"
+    ],
+    "expected_source_files": [
+      "08_llama2.pdf"
+    ],
     "notes": "LLaMA 2 paper Section A.2.1 (Architecture Changes Compared to Llama 1, Context Length subsection): 'We expand the context window for Llama 2 from 2048 tokens to 4096 tokens.' Note: 4096 also appears in fine-tuning details (Section 3.1) and dialogue context (Section A.3) — retrieval may pull any of these. Pretraining is the canonical context for the question."
   },
   {
     "id": "Q20",
     "category": "single_fact",
     "question": "On which translation benchmark did the original Transformer paper report a BLEU score of 28.4?",
-    "expected_answer_keywords": ["WMT", "English", "German"],
-    "expected_source_files": ["01_transformer.pdf"],
+    "expected_answer_keywords": [
+      "WMT",
+      "English",
+      "German"
+    ],
+    "expected_source_files": [
+      "01_transformer.pdf"
+    ],
     "notes": "Transformer paper Abstract: 'Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task'. Tests retrieval of fact embedded in abstract (often well-indexed at top of document)."
   },
   {
     "id": "Q21",
     "category": "single_fact",
     "question": "What activation function does the original Transformer use in its feed-forward sublayers?",
-    "expected_answer_keywords": ["ReLU"],
-    "expected_source_files": ["01_transformer.pdf"],
+    "expected_answer_keywords": [
+      "ReLU"
+    ],
+    "expected_source_files": [
+      "01_transformer.pdf"
+    ],
     "notes": "Transformer paper Section 3.3 Position-wise Feed-Forward Networks: 'two linear transformations with a ReLU activation in between', formula FFN(x) = max(0, xW_1 + b_1)W_2 + b_2. Note: BERT uses GeLU, LLaMA uses SwiGLU — tests retrieval routing under term-overlap pressure across the 8-paper corpus."
   },
   {
     "id": "Q22",
     "category": "single_fact",
     "question": "What size of language model does the chain-of-thought paper find to be the threshold for emergent reasoning ability?",
-    "expected_answer_keywords": ["100"],
-    "expected_source_files": ["07_cot.pdf"],
+    "expected_answer_keywords": [
+      "100"
+    ],
+    "expected_source_files": [
+      "07_cot.pdf"
+    ],
     "notes": "CoT paper Section 3.2 Results: 'chain-of-thought prompting is an emergent ability of model scale... only yields performance gains when used with models of ~100B parameters'. Tests fact-from-conclusion-section retrieval."
   },
   {
     "id": "Q23",
     "category": "single_fact",
     "question": "What positional encoding scheme does the original Transformer paper use?",
-    "expected_answer_keywords": ["sinusoidal", "sine", "cosine"],
-    "expected_source_files": ["01_transformer.pdf"],
+    "expected_answer_keywords": [
+      "sinusoidal",
+      "sine",
+      "cosine"
+    ],
+    "keyword_match_mode": "any",
+    "expected_source_files": [
+      "01_transformer.pdf"
+    ],
     "notes": "Transformer paper Section 3.5 Positional Encoding: 'we use sine and cosine functions of different frequencies', PE(pos, 2i) = sin(...), PE(pos, 2i+1) = cos(...). Any of 'sinusoidal', 'sine', 'cosine' should match. Note: BERT uses learned positional embeddings, LLaMA uses RoPE — tests retrieval routing under term-overlap pressure."
   },
   {
     "id": "Q24",
     "category": "single_fact",
     "question": "What scoring function does DPR use to compute relevance between a question and a passage?",
-    "expected_answer_keywords": ["dot product", "inner product"],
-    "expected_source_files": ["06_dpr.pdf"],
+    "expected_answer_keywords": [
+      "dot product",
+      "inner product"
+    ],
+    "keyword_match_mode": "any",
+    "expected_source_files": [
+      "06_dpr.pdf"
+    ],
     "notes": "DPR paper Section 3, Eq. (1): 'We define the similarity between the question and the passage using the dot product of their vectors: sim(q, p) = E_Q(q)^T E_P(p)'. Both 'dot product' and 'inner product' appear in surrounding text and are valid keyword hits."
   },
   {
     "id": "Q25",
     "category": "multi_chunk",
     "question": "What are the two RAG model variants introduced in the paper, and how do they differ?",
-    "expected_answer_keywords": ["RAG-Sequence", "RAG-Token"],
-    "expected_source_files": ["03_rag.pdf"],
+    "expected_answer_keywords": [
+      "RAG-Sequence",
+      "RAG-Token"
+    ],
+    "expected_source_files": [
+      "03_rag.pdf"
+    ],
     "notes": "RAG paper Section 2.1 Models: 'RAG-Sequence Model' uses the same retrieved document for the entire output sequence; 'RAG-Token Model' allows different latent documents per generated token. Both bolded subsection headings appear in §2.1."
   },
   {
     "id": "Q26",
     "category": "multi_chunk",
     "question": "What three categories of reasoning tasks does the chain-of-thought paper evaluate?",
-    "expected_answer_keywords": ["arithmetic", "commonsense", "symbolic"],
-    "expected_source_files": ["07_cot.pdf"],
+    "expected_answer_keywords": [
+      "arithmetic",
+      "commonsense",
+      "symbolic"
+    ],
+    "expected_source_files": [
+      "07_cot.pdf"
+    ],
     "notes": "CoT paper Sections 3, 4, 5: 'Arithmetic Reasoning', 'Commonsense Reasoning', 'Symbolic Reasoning'. Also enumerated in Section 2 introduction: 'arithmetic reasoning (Section 3), commonsense reasoning (Section 4), and symbolic reasoning (Section 5).' Single-chunk hit possible (Section 2 introduction sentence)."
   },
   {
     "id": "Q27",
     "category": "multi_chunk",
     "question": "What are the three in-context learning settings evaluated in GPT-3 besides fine-tuning?",
-    "expected_answer_keywords": ["zero-shot", "one-shot", "few-shot"],
-    "expected_source_files": ["04_gpt3.pdf"],
+    "expected_answer_keywords": [
+      "zero-shot",
+      "one-shot",
+      "few-shot"
+    ],
+    "expected_source_files": [
+      "04_gpt3.pdf"
+    ],
     "notes": "GPT-3 paper Section 2 (Approach) defines four settings as bolded subheadings: Fine-Tuning (FT), Few-Shot (FS), One-Shot (1S), Zero-Shot (0S). The question excludes FT, so answer = the three remaining. Figure 2.1 caption also lists all three: 'Zero-shot, one-shot and few-shot, contrasted with traditional fine-tuning'."
   },
   {
     "id": "Q28",
     "category": "cross_paper",
     "question": "What sequence-to-sequence model does RAG use as its generator, and what is the dimension of the dense passage embeddings used in DPR?",
-    "expected_answer_keywords": ["BART", "768"],
-    "expected_source_files": ["03_rag.pdf", "06_dpr.pdf"],
+    "expected_answer_keywords": [
+      "BART",
+      "768"
+    ],
+    "expected_source_files": [
+      "03_rag.pdf",
+      "06_dpr.pdf"
+    ],
     "notes": "RAG paper Section 2.3: BART-large generator (verified in Q07). DPR paper Section 3: 768-dim embeddings (verified in Q17). Tests cross-paper attribution between two papers that reference each other (RAG paper cites DPR)."
   },
   {
     "id": "Q29",
     "category": "cross_paper",
     "question": "What reinforcement learning algorithm does InstructGPT use to fine-tune the policy, and what is the largest GPT-3 model size that InstructGPT builds on?",
-    "expected_answer_keywords": ["PPO", "175"],
-    "expected_source_files": ["05_instructgpt.pdf", "04_gpt3.pdf"],
+    "expected_answer_keywords": [
+      "PPO",
+      "175"
+    ],
+    "expected_source_files": [
+      "05_instructgpt.pdf",
+      "04_gpt3.pdf"
+    ],
     "notes": "InstructGPT uses PPO (verified in Q08). GPT-3 175B is the largest model (verified in Q04). Tests cross-paper joint retrieval where one half is acronym, other half is number."
   },
   {
     "id": "Q30",
     "category": "cross_paper",
     "question": "What are the three released LLaMA 2 model sizes, and at what model parameter scale does chain-of-thought prompting show emergent reasoning ability?",
-    "expected_answer_keywords": ["7", "13", "70", "100"],
-    "expected_source_files": ["08_llama2.pdf", "07_cot.pdf"],
+    "expected_answer_keywords": [
+      "7",
+      "13",
+      "70",
+      "100"
+    ],
+    "expected_source_files": [
+      "08_llama2.pdf",
+      "07_cot.pdf"
+    ],
     "notes": "LLaMA 2: 7B, 13B, 70B released (verified in Q11). CoT paper: 'models of ~100B parameters' for emergent ability (verified in Q22). Both papers discuss model scale, so semantic routing must distinguish."
   }
 ]

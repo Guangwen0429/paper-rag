@@ -812,3 +812,276 @@ Different retrieval configs feed different chunk contexts to the generator, plac
 - **Variant ablations not run**: hyde-only (no BM25, no rerank), hyde with N=3 passages averaged (Gao's original setup), hyde with query+hyde concatenation. Reserved for future experiments.
 
 - **Adaptive HyDE gating**: HyDE adds latency and cost per query. Q08 benefits, Q14 does not. A query classifier deciding when to trigger HyDE (similar to planned Exp M for adaptive α) would reduce average cost without losing the Q08-class gains.
+
+---
+
+# Day 12 — Exp G2: HyDE Ensemble + Evaluator Bug Fix
+
+**Date**: 2026-04-27
+**Status**: ✅ Complete
+
+## Setup
+
+Day 11 (Exp G) demonstrated that single-passage HyDE rescues 1 vocabulary-mismatch
+question (Q08) but does not rescue any compound query (Q15/Q28/Q30). The resume
+narrative claims HyDE "alleviates compound query semantic smearing" — Day 11
+evidence does not support this claim. Day 12 has two goals:
+
+1. **Exp G2 (HyDE ensemble)**: Verify whether N-passage ensemble (Gao et al. 2022's
+   original setup, here with N=5 instead of N=8 for cost) rescues compound queries.
+2. **Evaluator audit (post-bug-fix)**: A spot-check during Q24 chunk inspection
+   revealed `check_keyword_hit` uses AND logic for all questions, but Q23/Q24
+   use synonym keyword lists (e.g., Q24: `["dot product", "inner product"]`) that
+   should match by OR. Fix the bug, re-run baseline configs, and verify whether
+   the Day 11 Lesson 25 conclusion (HyDE +1 exceeds noise floor) still holds
+   under the corrected evaluator.
+
+**Code changes**:
+
+- `src/retriever.py`: added `generate_hyde_passages_n` (T=0.7, n_passages=5) and
+  `hyde_ensemble_then_rerank` (RRF over N+1 retrieval lists: N vector searches
+  with each hypothetical passage + 1 BM25 search with original query).
+- `eval_questions.json`: added `keyword_match_mode: "any"` field to Q23 and Q24.
+- `scripts/run_eval.py`: `check_keyword_hit` accepts `match_mode` parameter
+  ("all" default, "any" for synonym-class questions); `evaluate_single` reads
+  `keyword_match_mode` from question_data and forwards it.
+
+**Evaluation**: same 30-question set, chunk_size=500, k=5, n_candidates=20.
+Each config run 3 times (Lesson 21 noise floor protocol).
+
+## Hypothesis
+
+**H1 (ensemble rescues compound queries)**: N=5 ensemble will rescue at least
+one of Q15/Q28/Q29/Q30 (compound queries that single-passage HyDE failed on).
+The mechanism: T=0.7 generates diverse hypothetical passages each covering a
+different aspect of the compound query; RRF over N parallel retrievals broadens
+candidate coverage.
+
+**H2 (evaluator bug-fix preserves Lesson 25)**: After fixing the OR/AND bug,
+rerank baseline and HyDE single-passage will both gain absolute keyword_hit
+counts (Q23/Q24 previously misjudged). The relative gap (HyDE = rerank + 1)
+should be preserved — Lesson 25 stands.
+
+**H3 (rerank noise floor changes after fix)**: Day 10 audit measured rerank_weighted
+α=0.0 with std≈0.5 (16/17/16). After fix and on the rerank (unweighted) config,
+3-run distribution may differ — needs re-measurement, not assumption.
+
+## Result
+
+### Exp G2: HyDE Ensemble (N=5, T=0.7) × 3 runs
+
+| Run | Keyword Hit (raw) | Keyword Hit (post-fix) | Routing Prec |
+|-----|-------------------|------------------------|--------------|
+| 1   | 19/30             | 21/30                  | 92.7%        |
+| 2   | 19/30             | 21/30                  | 91.3%        |
+| 3   | 19/30             | 21/30                  | 92.0%        |
+| **mean ± std** | **19.0 ± 0.0** | **21.0 ± 0.0** | **92.0%** |
+
+**Q15/Q28/Q30 still all ✗** under all 3 ensemble runs. **H1 falsified**.
+Ensemble does not rescue compound queries.
+
+### Diff vs Day 11 single-passage HyDE (run 1, on raw scores):
+
+- **Ensemble rescues** Q09 (CoT GSM8K) — single-passage missed it.
+- **Ensemble loses** Q02 (Transformer attention heads, expected "8") — single-passage had this.
+
+Net: 0 absolute change (both at 19/30 raw, 21/30 post-fix), but the questions
+hit shift by ±1.
+
+### Q02 chunk-level diff (where ensemble regresses):
+
+Top-3 ranks identical between methods. Diverge at rank 4-5:
+
+- **Single-passage HyDE rank 4-5**:
+  - Rank 4: `01_transformer.pdf` p.3 — multi-head formula chunk
+  - Rank 5: `01_transformer.pdf` p.4 — `MultiHead(Q,K,V)` formula with `h` parameter (★ contains "h = 8" context)
+
+- **Ensemble rank 4-5**:
+  - Rank 4: `02_bert.pdf` p.2 — `BERTBASE (L=12, H=768, A=12)` chunk (★ contains BERT's A=12)
+  - Rank 5: `01_transformer.pdf` p.3 — multi-head formula chunk
+
+Mechanism: At T=0.7, at least one of the 5 hypothetical passages discussed BERT's
+attention head count, raising the BERT chunk's similarity in RRF aggregation,
+displacing the Transformer "h=8" chunk from top-5. Generator then sees BERT's
+A=12 and Transformer multi-head theory but not Transformer's h=8 → answers
+"I don't have enough information."
+
+### Evaluator Bug Fix: rerank baseline + hyde_rerank × 3 runs (post-fix)
+
+| Config            | Run 1 | Run 2 | Run 3 | mean | std |
+|-------------------|-------|-------|-------|------|-----|
+| rerank            | 20/30 | 20/30 | 20/30 | 20.0 | 0.0 |
+| hyde_rerank       | 21/30 | 21/30 | 21/30 | 21.0 | 0.0 |
+
+Both configs zero-variance across 3 runs.
+
+### Pre-fix vs post-fix scores (all configs, single run):
+
+| Config                | Pre-fix | Post-fix | Δ |
+|-----------------------|---------|----------|---|
+| hybrid                | 17/30   | 18/30    | +1 |
+| rerank                | 18/30   | 20/30    | +2 |
+| hyde_rerank           | 19/30   | 21/30    | +2 |
+| hyde_ensemble_rerank  | 19/30   | 21/30    | +2 |
+
+The bug systematically underestimated all configs by 1-2 questions for 11+
+days. The +1 gap between rerank and hyde_rerank is preserved — Lesson 25 still
+holds, with cleaner evidence (both distributions are now single-point at 20
+and 21 respectively).
+
+### Vocabulary-mismatch class re-audit (4 questions)
+
+Re-classified the 4 candidate questions with corrected evaluator:
+
+| Q   | rerank baseline | hyde single | hyde ensemble | Status |
+|-----|-----------------|-------------|---------------|--------|
+| Q06 | ✓               | ✓           | ✓             | baseline already solved |
+| Q08 | ✗               | ✓           | ✓             | **HyDE truly rescued** |
+| Q17 | ✗               | ✗           | ✗             | unrescuable by HyDE |
+| Q24 | ✓ (post-fix)    | ✓           | ✓             | baseline already solved (was misjudged pre-fix) |
+
+HyDE's true rescue rate on baseline-failing vocabulary-mismatch questions:
+**1/2 = 50%** (Q08 rescued, Q17 not). Q06 and Q24 did not need HyDE.
+
+## Analysis
+
+**H1 falsified**: Ensemble does not rescue compound queries. After 3 independent
+runs at T=0.7, Q15/Q28/Q30 all remain ✗. The theoretical motivation (multiple
+passages cover multi-aspect query) doesn't materialize on this 30-question set,
+likely because:
+
+- Compound queries in this set involve **cross-paper joint retrieval** (Q15:
+  Transformer + BERT objectives; Q30: LLaMA-2 + CoT scales). The bottleneck
+  isn't query-side coverage but **document-routing coverage**: even if hypothetical
+  passages cover both topics, the cross-encoder reranker still scores top-5
+  predominantly from the dominantly-relevant paper. RRF over N vector searches
+  doesn't fix this — it only diversifies vector-side candidates, not the final
+  ranking.
+
+**H2 confirmed**: Bug fix preserves Lesson 25's relative finding. Pre-fix gap
+(HyDE 19 vs rerank 18) and post-fix gap (HyDE 21 vs rerank 20) are both +1.
+The conclusion that HyDE exceeds the noise floor is now supported by even
+cleaner evidence (both 3-run distributions are zero-variance, completely
+non-overlapping).
+
+**H3 confirmed**: rerank noise floor on the unweighted config differs from the
+α=0.0 weighted config measured in Day 10. Day 10 measured 16/17/16 (std≈0.5);
+Day 12 measures 20/20/20 (std=0). Two interpretations:
+
+1. The OR-bug fix preferentially stabilized the configs (Q23/Q24 always answered
+   correctly in both rerank variants, so post-fix they consistently hit, eliminating
+   one source of variance).
+2. Different code paths through `hybrid_then_rerank` vs `hybrid_then_rerank_weighted`
+   produce different final chunk ordering in edge cases, leading to different
+   generator inputs and different boundary-distance behavior.
+
+Either way, this reinforces Lesson 28: noise floor is a (config, evaluator,
+evaluation-set) property — three-way, not just two-way as previously stated.
+
+**Day 12 unexpected discovery**: The OR-bug had been silently corrupting all
+keyword_hit metrics for 11+ days. It was caught only by accident during chunk
+inspection of Q24 (when investigating why HyDE didn't rescue it — answer: it
+already had been correct, the evaluator was wrong). All Day 1-11 keyword_hit
+numbers in `experiment_log.md` and `README.md` need a footnote: "pre-bugfix
+evaluator, see Day 12 Lesson 31".
+
+## Lessons
+
+**Lesson 29**: HyDE ensemble (N=5, T=0.7) does not improve over single-passage
+HyDE on this 30-question set. Both at 21/30 keyword hit, identical 3-run
+zero-variance distributions. But internal question-by-question hit patterns
+differ: ensemble rescues Q09 (CoT GSM8K, vocabulary mismatch class) but
+loses Q02 (Transformer attention heads, simple single-fact). The mechanism
+of Q02 regression: at T=0.7, at least one of 5 hypothetical passages discussed
+BERT's attention heads (A=12), raising BERT chunk similarity in RRF, displacing
+the Transformer "h=8" chunk from top-5. Ensemble's diversity is a double-edged
+sword in cross-paper environments — it expands semantic coverage but also
+expands noise from neighboring papers' similar terminology.
+
+**Lesson 30**: HyDE's effective boundary is sharper than "vocabulary mismatch
+class". Two sub-types exist:
+
+- **Type A (term-extension; HyDE works)**: Query uses informal term, paper uses
+  technical term, AND the technical term appears multiply in the paper.
+  Example: Q08 query "RL algorithm" vs paper "PPO". The hypothetical passage
+  generated by GPT-4o-mini contains "PPO" naturally (LLM's prior on InstructGPT
+  training pipeline includes PPO), pulling vector retrieval toward PPO chunks
+  within the InstructGPT paper. **HyDE rescues**.
+
+- **Type B (isolated-fact; HyDE fails)**: Answer is an isolated number or fact
+  appearing once in the paper, with no surrounding terminology bridge to the
+  query. Example: Q17 query "dimension of dense passage embeddings" vs paper
+  "768" (single mention in encoder architecture section). Hypothetical passage
+  may mention "768-dim" but cannot pull that single chunk into top-20 — it's
+  not in the candidate set. Cross-encoder never gets to see it. **HyDE has no
+  effect**.
+
+Implication: HyDE's correction operates at the chunk-selection layer (re-ranking
+within the candidate set), not the chunk-recall layer (expanding the candidate
+set). To address Type B, would need either: (a) multi-query rewriting that
+generates several distinct query variants each retrieving independently, or
+(b) BM25-priority routing for numeric/factoid queries.
+
+**Lesson 31**: Evaluator code carries silent risk. The `check_keyword_hit` function
+treated `expected_answer_keywords` as AND for all questions, but Q23 and Q24
+have synonym keyword lists (Q23: ["sinusoidal", "sine", "cosine"]; Q24: ["dot
+product", "inner product"]). These were mis-judged as ✗ for 11+ days even
+when the answer correctly contained the synonym. Discovery was accidental —
+during Day 12 Q24 chunk debugging, manual reading of the answer revealed it
+clearly said "dot product" but `keyword_hit` reported false.
+
+Magnitude of underestimate: hybrid +1, rerank +2, hyde_rerank +2,
+hyde_ensemble +2. The +1 gap between methods was preserved, so Lessons 25-29
+remain valid in their relative claims, but absolute numbers in all prior log
+entries should be footnoted as pre-bugfix.
+
+Process implication: evaluator metrics must be unit-tested independently. The
+fix added a `keyword_match_mode` field ("all" default, "any" override) per
+question, with `notes` field carrying the human intent (e.g., Q23 notes already
+said "Any of 'sinusoidal', 'sine', 'cosine' should match" — the human knew,
+the code didn't read).
+
+**Lesson 32**: Methodological rigor must include the evaluator itself, not just
+the system being evaluated. Day 10's reproducibility audit checked LLM noise
+under T=0 (output drift), but did not audit the evaluator's correctness. If
+Day 10 had included a "evaluator unit test against known-good answers" step,
+the OR-bug would have surfaced 2 weeks earlier. Recommendation: any future
+project should include `tests/test_evaluator.py` as a first-class artifact,
+with at least one test per `check_*` function covering both the AND case and
+the OR case explicitly.
+
+## Implications for Future Work
+
+- **Compound query rescue still open**: Q15/Q28/Q30 remain unsolved by any
+  variant of HyDE. Resume language ("alleviate compound query semantic smearing")
+  is not supported by experiments. To genuinely address compound queries,
+  approaches outside HyDE's scope are needed: (a) query decomposition
+  (LLM-driven splitting of compound query into sub-queries, retrieve each
+  independently, merge); (b) hierarchical retrieval (first identify which
+  papers the query touches, then retrieve from each independently); (c)
+  cross-encoder ensemble using multi-query reranker.
+
+- **Q17 unrescuable**: All HyDE variants miss Q17. The DPR paper's "768" mention
+  is in encoder-architecture section (page 2 likely) but isn't in any candidate
+  retrieved by current pipelines. To debug, inspect chunk index for "768" in
+  06_dpr.pdf — if it exists as a chunk but isn't retrieved, then the issue is
+  retrieval recall (vector + BM25 both miss). If it doesn't exist as a clean
+  chunk, then chunking strategy may need revisiting.
+
+- **Evaluator infrastructure**: Add `tests/test_evaluator.py` with at minimum:
+  (a) AND case (Q11 "7,13,70" with answer "7B, 13B, and 70B" → True; same
+  answer missing one number → False); (b) OR case (Q23 with answer containing
+  only "sine and cosine" → True; same answer with no positional encoding terms
+  → False). Add CI step or pre-commit hook running these.
+
+- **Evaluator schema migration**: Currently 28/30 questions have no
+  `keyword_match_mode` field (default "all"). Audit each question's notes to
+  see if any other "OR" cases exist that were never explicitly flagged.
+  Candidate suspects: Q18 (`["10", "100"]` — described as range "10 to 100"
+  in notes, may be legitimately AND); Q26/Q27 (three-category enumerations,
+  AND is correct).
+
+- **Lesson 28 strengthened**: Noise floor is now established as a (config,
+  evaluator, evaluation-set) triple property, not just (config, eval-set).
+  Re-running the same audit after any of these three changes is mandatory
+  before reusing prior noise floor numbers.

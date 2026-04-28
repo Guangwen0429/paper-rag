@@ -512,6 +512,117 @@ def hyde_then_rerank(
 
 
 # ============================================================
+# HyDE Ensemble Retrieval (Exp G2, Day 12)：N 个假想答案集成
+# ============================================================
+
+def generate_hyde_passages_n(
+        question: str,
+        n: int = 5,
+        model: str = "gpt-4o-mini",
+        max_tokens: int = 200,
+        temperature: float = 0.7,
+) -> List[str]:
+    """
+    生成 N 个独立的 hypothetical passages（用于 HyDE ensemble, Exp G2）。
+
+    与 generate_hyde_passage 的区别：
+      - 生成 N 个 passages 而非 1 个
+      - temperature=0.7 让 N 个 passages 在内容/措辞上多样化
+        （T=0 会让 N 次生成完全一致，ensemble 无意义）
+      - 因此本函数引入轻微非确定性，需要在 eval 时多跑取均值
+
+    设计动机：单 passage HyDE（Day 11 Exp G）只救了 Q08 一题，且属于
+    vocabulary mismatch 类。compound query 类（Q15/Q28/Q29）未救。
+    Gao et al. 2022 原版用 N=8 ensemble，假设 multi-aspect 信息能在
+    N 个 passages 间被分别覆盖，融合后检索更全面。本实验用 N=5 验证
+    此假设在 30q 评估集上是否成立。
+    """
+    client = _get_openai_client()
+    passages = []
+    for _ in range(n):
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": _HYDE_PROMPT.format(query=question)}],
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        passages.append(response.choices[0].message.content.strip())
+    return passages
+
+
+def hyde_ensemble_then_rerank(
+        vectorstore: Chroma,
+        bm25: BM25Okapi,
+        chunks: List[Document],
+        question: str,
+        k: int = 5,
+        n_candidates: int = 20,
+        n_passages: int = 5,
+) -> List[Document]:
+    """
+    HyDE ensemble retrieval pipeline（Exp G2，Day 12）。
+
+    流程：
+      1. LLM 生成 N 个假想 passages（T=0.7 保多样性）
+      2. 每个 passage 独立做向量检索 → 得到 N 路候选
+      3. BM25 用原 question 检索（HyDE 对 BM25 词袋无帮助）
+      4. RRF 融合 N+1 路候选（N 路向量 + 1 路 BM25）
+      5. Cross-encoder 用原 question 精排
+
+    与 hyde_then_rerank (Day 11) 的差异：
+      - 单 passage → N passages
+      - 单次 vector search → N 次独立 vector search + N 路 RRF
+
+    成本：每题 N 次 LLM call。N=5 时单题 ~1 秒生成 + 5 次 embed +
+    5 次 vector search（vector search 极快）。30 题 ~5 分钟。
+    """
+    # ========== Step 1: 生成 N 个假想 passages ==========
+    hyde_passages = generate_hyde_passages_n(question, n=n_passages)
+
+    # ========== Step 2: 每个 passage 独立向量检索 ==========
+    all_vector_hits = []
+    for passage in hyde_passages:
+        hits = retrieve_chunks(vectorstore, passage, k=n_candidates)
+        all_vector_hits.append(hits)
+
+    # ========== Step 3: BM25 用原 question ==========
+    bm25_docs = bm25_retrieve(bm25, chunks, question, k=n_candidates)
+
+    # ========== Step 4: RRF 融合 N+1 路（复用 hyde_then_rerank 的 doc_id 规则）==========
+    def doc_id(doc: Document) -> str:
+        source = doc.metadata.get("source", "")
+        page = doc.metadata.get("page", "")
+        preview = doc.page_content[:100]
+        return f"{source}|{page}|{preview}"
+
+    rrf_k_const = 60
+    rrf_scores = {}
+    doc_lookup = {}
+
+    # N 路向量检索结果
+    for vector_docs in all_vector_hits:
+        for rank, doc in enumerate(vector_docs, start=1):
+            did = doc_id(doc)
+            rrf_scores[did] = rrf_scores.get(did, 0) + 1.0 / (rrf_k_const + rank)
+            doc_lookup[did] = doc
+
+    # 1 路 BM25 检索结果
+    for rank, doc in enumerate(bm25_docs, start=1):
+        did = doc_id(doc)
+        rrf_scores[did] = rrf_scores.get(did, 0) + 1.0 / (rrf_k_const + rank)
+        doc_lookup[did] = doc
+
+    sorted_ids = sorted(rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True)[:n_candidates]
+    candidates = [doc_lookup[did] for did in sorted_ids]
+
+    if len(candidates) == 0:
+        return []
+
+    # ========== Step 5: Cross-encoder 用原 question 精排 ==========
+    return rerank_with_cross_encoder(candidates, question, k=k)
+
+
+# ============================================================
 # 测试代码：单独运行 `python -m src.retriever` 时执行
 # ============================================================
 if __name__ == "__main__":

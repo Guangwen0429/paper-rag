@@ -26,6 +26,7 @@ from src.retriever import (
     hybrid_then_rerank,
     hybrid_then_rerank_weighted,
     hyde_then_rerank,
+    hyde_ensemble_then_rerank,
 )
 from src.generator import generate_answer
 
@@ -34,17 +35,13 @@ from src.generator import generate_answer
 # 配置：要跑的实验组合
 # ============================================================
 EXPERIMENTS = [
-    # Day 10 results already in eval_summary_all_day10_30q.json — skip to save cost
-    # ("hybrid", 5, 500, 50, 0.0),
-    # ("rerank", 5, 500, 50, 0.0),
-    # ("rerank_weighted", 5, 500, 50, 0.0),
-    # ("rerank_weighted", 5, 500, 50, 0.3),
-    # ("rerank_weighted", 5, 500, 50, 0.5),
-    # ("rerank_weighted", 5, 500, 50, 0.7),
-    # ("rerank_weighted", 5, 500, 50, 1.0),
-
-    # Day 11 (Exp G): HyDE x 3 runs (per Lesson 21 noise floor: N>=3 averaging
-    # before claiming method-level differences exceed +/-1 question noise envelope)
+    # Day 12 (post-bug-fix re-audit): re-run rerank baseline and HyDE single
+    # 3 times each, with corrected check_keyword_hit (OR support for Q23/Q24).
+    # Goal: verify Lesson 25 (HyDE +1 over rerank exceeds noise floor) still
+    # holds after the OR/AND fix.
+    ("rerank", 5, 500, 50, 0.0),       # run 1
+    ("rerank", 5, 500, 50, 0.0),       # run 2
+    ("rerank", 5, 500, 50, 0.0),       # run 3
     ("hyde_rerank", 5, 500, 50, 0.0),  # run 1
     ("hyde_rerank", 5, 500, 50, 0.0),  # run 2
     ("hyde_rerank", 5, 500, 50, 0.0),  # run 3
@@ -56,12 +53,29 @@ PAPERS_DIR = "papers"
 # 评估指标
 # ============================================================
 
-def check_keyword_hit(answer: str, expected_keywords: List[str]) -> bool:
+def check_keyword_hit(answer: str, expected_keywords: List[str], match_mode: str = "all") -> bool:
+    """
+    检查答案是否命中期望关键词。
+
+    match_mode:
+        "all": 所有关键词都必须出现（默认，适合多事实题如 Q11/Q13）
+        "any": 任一关键词出现即可（适合同义词题如 Q23/Q24，
+               expected_keywords 是同义词列表如 ['sinusoidal','sine','cosine']）
+
+    Day 12 引入 match_mode 参数，修复之前所有题目都按 AND 判定导致
+    Q23/Q24 这类同义词题永远被错判 ✗ 的 bug。详见 Lesson 31。
+    """
     answer_lower = answer.lower()
-    for kw in expected_keywords:
-        if kw.lower() not in answer_lower:
-            return False
-    return True
+    if match_mode == "any":
+        for kw in expected_keywords:
+            if kw.lower() in answer_lower:
+                return True
+        return False
+    else:  # default "all"
+        for kw in expected_keywords:
+            if kw.lower() not in answer_lower:
+                return False
+        return True
 
 
 def check_source_hit(retrieved_docs: List, expected_files: List[str]) -> bool:
@@ -110,6 +124,11 @@ def retrieve(mode: str, vectorstore, bm25, chunks, question: str, k: int, alpha:
             vectorstore, bm25, chunks, question,
             k=k, n_candidates=20,
         )
+    elif mode == "hyde_ensemble_rerank":
+        return hyde_ensemble_then_rerank(
+            vectorstore, bm25, chunks, question,
+            k=k, n_candidates=20, n_passages=5,
+        )
     else:
         raise ValueError(f"Unknown retrieval mode: {mode}")
 
@@ -129,6 +148,8 @@ def evaluate_single(
     question = question_data["question"]
     expected_keywords = question_data["expected_answer_keywords"]
     expected_files = question_data["expected_source_files"]
+    # Day 12 新增：从题目读取 keyword_match_mode（默认 "all"）
+    match_mode = question_data.get("keyword_match_mode", "all")
 
     # 检索
     retrieved = retrieve(mode, vectorstore, bm25, chunks, question, k, alpha)
@@ -137,7 +158,7 @@ def evaluate_single(
     answer = generate_answer(question, retrieved)
 
     # 计算指标
-    keyword_hit = check_keyword_hit(answer, expected_keywords)
+    keyword_hit = check_keyword_hit(answer, expected_keywords, match_mode=match_mode)
     source_hit = check_source_hit(retrieved, expected_files)
     correct_chunks = count_correct_source_chunks(retrieved, expected_files)
     total_chunks = len(retrieved)
@@ -162,6 +183,7 @@ def evaluate_single(
         "id": qid,
         "question": question,
         "expected_keywords": expected_keywords,
+        "keyword_match_mode": match_mode,
         "expected_files": expected_files,
         "answer": answer,
         "keyword_hit": keyword_hit,
@@ -316,8 +338,8 @@ def main():
         print(f"{config:<40} {kw:<20} {src:<20} {prec:<15}")
     print("=" * 83)
 
-    # 保存汇总表（Day 11 重跑专用名）
-    summary_file = project_root / "evaluation" / "eval_summary_hyde_reproducibility_day11_30q.json"
+    # Day 12 post-bugfix 专用 summary 文件名
+    summary_file = project_root / "evaluation" / "eval_summary_post_bugfix_day12_30q.json"
     with open(summary_file, "w", encoding="utf-8") as f:
         json.dump(all_summaries, f, indent=2, ensure_ascii=False)
     print(f"\nSummary saved to: {summary_file.relative_to(project_root)}")
