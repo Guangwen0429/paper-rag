@@ -507,6 +507,21 @@ def hyde_then_rerank(
     if len(candidates) == 0:
         return []
 
+    # ===== DEBUG: 打印 top 20 候选池（Day 13 Q17 audit）=====
+    import os
+    if os.environ.get("DEBUG_TOP20") == "1":
+        print(
+            f"\n{'=' * 70}\n[DEBUG] hyde_then_rerank top-{len(candidates)} candidates for query:\n  {question}\n{'=' * 70}")
+        for i, doc in enumerate(candidates, 1):
+            src = doc.metadata.get("source", "?")
+            page = doc.metadata.get("page", "?")
+            has_768 = "768" in doc.page_content
+            mark = " ★★★ contains 768" if has_768 else ""
+            preview = doc.page_content[:150].replace("\n", " ")
+            print(f"  [{i:2d}] {src} p{page}{mark}")
+            print(f"       {preview}...")
+        print(f"{'=' * 70}\n")
+
     # ========== Step 5: Cross-encoder 用原 question 精排 ==========
     return rerank_with_cross_encoder(candidates, question, k=k)
 

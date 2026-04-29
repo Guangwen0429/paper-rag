@@ -1085,3 +1085,131 @@ the OR case explicitly.
   evaluator, evaluation-set) triple property, not just (config, eval-set).
   Re-running the same audit after any of these three changes is mandatory
   before reusing prior noise floor numbers.
+
+---
+
+# Day 13 — Audit Corrections
+
+**Date**: 2026-04-28
+**Status**: Complete (audit only, no new experiments)
+
+## Motivation
+
+Day 12 closed with a commit including 4 new lessons (29-32) and revisions to 25-28.
+Concern raised post-commit: AI-assisted writing during Day 11-12 may have included
+mechanism narratives or example cases that were pattern-matched from training data
+rather than verified against actual JSON / chunk data. Day 13 is a pure audit:
+re-verify every numerical claim, mechanism narrative, and worked example in
+Lessons 25-32 against raw evaluation files, not against memory.
+
+## Audit Method
+
+1. Listed every numerical claim in Lessons 25-32 (X/30, std, plus or minus N).
+2. Re-ran extraction commands on `evaluation/eval_results_*.json` files to
+   confirm each number.
+3. For each mechanism narrative, re-opened the corresponding `retrieved_chunks`
+   field and verified the claim against actual chunk text.
+4. For each worked example, checked whether the example was a literal
+   observation from this run's data or a pattern-matched fabrication.
+
+## Findings
+
+### Verified (no change needed)
+
+| Lesson | Claim                                                                                       | Evidence                                                                                          |
+|--------|---------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| 25     | HyDE +1 over rerank (19/30 vs 18/30 pre-fix; 21/30 vs 20/30 post-fix), 3-run std=0          | All 6 result JSONs confirm exact numbers                                                          |
+| 26     | HyDE operates at chunk-selection level (not document-routing level)                         | Q08 top-3 identical between methods; only rank 4-5 differ within `05_instructgpt.pdf`             |
+| 27     | Methodological investment compounds                                                         | Conceptual claim; no data verification needed                                                     |
+| 28     | Noise floor is a (config, eval-set) property                                                | Day 10 alpha=0.0 ran 16/17/16 (std~=0.5); Day 11 hyde_rerank ran 19/19/19 (std=0); both verified  |
+| 29     | Ensemble does not improve over single HyDE on this set; Q09/Q02 swap relative to single HyDE| Verified against `eval_results_hyde_ensemble_*` and `eval_results_hyde_rerank_postfix_*`          |
+| 30 (Type A) | Q08 is rescued; HyDE-recall pulls PPO-bearing chunks into top-5                        | Verified: rerank top-5 contains zero "PPO" chunks; hyde_rerank top-5 has 2 (rank 4-5)             |
+| 30 (Type B) | Q17 is not rescued                                                                     | Verified: hyde_rerank top-5 are all from `06_dpr.pdf` but none contain "768"                      |
+| 31     | Evaluator OR/AND bug existed and was fixed                                                  | `check_keyword_hit` source confirms `match_mode="any"` branches OR, default branches AND          |
+| 32     | Methodological rigor must include the evaluator                                             | Conceptual claim; no data verification needed                                                     |
+
+### Corrected: Lesson 30 implication paragraph
+
+**Original (Day 12) wording**:
+
+> "HyDE's correction operates at the chunk-selection layer (re-ranking
+> within the candidate set), not the chunk-recall layer (expanding the
+> candidate set)."
+
+**Verification on Day 13 (Q17 case)**: A debug print of the top-20 candidate
+pool was added to `hyde_then_rerank` (env-gated by `DEBUG_TOP20=1`). On Q17:
+
+- **Top-20 candidate pool (post HyDE retrieval + RRF, pre cross-encoder)**:
+  Position 7 is `06_dpr.pdf` p.2, content: *"...we use two independent BERT
+  (Devlin et al., 2019) networks (base, uncased) and take the representation
+  at the [CLS] token as the output, so d = 768."* — the only chunk in the
+  entire DPR vector index containing "768".
+- **Top-5 (post cross-encoder rerank with original query)**: All 5 chunks
+  are from `06_dpr.pdf` but none contain "768". The position-7 chunk was
+  demoted to position 6 or beyond by cross-encoder.
+
+**Conclusion**: HyDE successfully operated at the chunk-recall layer for Q17.
+The selection bottleneck is downstream in cross-encoder rerank, which scores
+the "d=768" chunk lower because the chunk's main subject is encoder
+architecture rather than the dimension question. The "d=768" appears as a
+tail clause; the cross-encoder, trained on MS MARCO query-passage relevance
+pairs, treats this chunk as "about encoder choice" rather than "answering
+the dimension question".
+
+**Revised wording (replaces Lesson 30 implication paragraph)**:
+
+> HyDE's effective boundary is determined by two layers in sequence:
+>
+> - **chunk-recall layer**: whether HyDE's hypothetical passage moves the
+>   answer-bearing chunk into the top-20 candidate pool;
+> - **chunk-selection layer**: whether the cross-encoder rerank with original
+>   query then promotes that chunk into top-5.
+>
+> Both must succeed. Q08 succeeds at both. Q17 succeeds at recall (the
+> unique chunk containing "768" enters top-20 at position 7) but fails at
+> selection. Therefore Type B "HyDE fails" decomposes into:
+>
+> - **Type B-recall (not observed today)**: The answer-bearing chunk cannot
+>   reach top-20 even with HyDE.
+> - **Type B-selection (Q17 case)**: HyDE delivers the chunk to top-20, but
+>   cross-encoder demotes it because its subject is not the queried fact.
+>
+> Implication for next-step interventions: Q17-class failures need either
+> (a) weighted fusion of RRF and cross-encoder scores at the HyDE pipeline
+> (currently only implemented at the hybrid pipeline as `rerank_weighted`),
+> or (b) an LLM-based reranker that recognizes "tail-clause facts" the
+> cross-encoder treats as background. A purely retrieval-side intervention
+> cannot fix Type B-selection.
+
+### Corrected: Q14 example removed from Lesson 31
+
+**Original (Day 12) example in Lesson 31 explanatory text**:
+
+> "Q14 expects ['8', '12']; if GPT answers 'Transformer base uses 12 heads,
+> BERT uses 8' (cross-attribution), keywords match, judged correct."
+
+**Verification on Day 13**: Q14 was checked in the post-fix runs — under
+both rerank and hyde_rerank, Q14 is judged incorrect in all 3 runs. The
+cross-attribution scenario described above did not occur in this dataset.
+The example was a pattern-matched abstraction onto a plausible-looking
+question without verifying actual answer text.
+
+**Resolution**: The Q14 example is removed. The general AND-mode
+misattribution risk remains valid as a known evaluator limitation, but no
+unverified anchor is provided.
+
+## Audit Not Performed (deferred)
+
+- **Lessons 1-24** were not individually re-audited line-by-line. Spot
+  checks on numbers in Lessons 21-24 (Day 10 noise floor) match
+  reproducibility audit JSONs. Lesson 1-15 mechanism narratives may have
+  been AI-assisted; they remain as historical observations.
+- **Q17 post-cross-encoder ranking**: The exact rank of the "d=768" chunk
+  after cross-encoder rerank was not extracted. `DEBUG_TOP20` only prints
+  pre-rerank top-20. Not blocking the Lesson 30 conclusion.
+
+## Code Change
+
+`src/retriever.py`: Added env-gated debug print of top-20 candidate pool
+inside `hyde_then_rerank`. Activated by `DEBUG_TOP20=1`. No-op in normal
+runs. Useful for future Type B-selection investigations.
