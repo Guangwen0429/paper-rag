@@ -1194,6 +1194,59 @@ cross-attribution scenario described above did not occur in this dataset.
 The example was a pattern-matched abstraction onto a plausible-looking
 question without verifying actual answer text.
 
+---
+
+# Day 13 — Roadmap: LLM-Centric Retrieval Direction
+
+**Date**: 2026-04-29
+**Motivation**: An external technical discussion (interview setting on this date) surfaced a parallel design path that the project had not explicitly considered: rather than continuing to optimize the multi-stage retrieve→rerank pipeline, a single-stage "LLM intent analysis + LLM judge" architecture could simplify the entire system. This converges with Lesson 16 (query-conditional retrieval) but reframes the optimization target: instead of finding the right global retrieval config, route each query to the right local strategy via LLM understanding.
+
+This entry consolidates the future-work scattered across Days 10–12 into four ranked experiments (Exp O–R), aligned with this LLM-centric direction.
+
+### Why Now
+
+Three factors make this the natural next phase:
+
+1. **Failure-mode taxonomy is stable** (Lessons 7–32): the 6 verified failure mechanisms (BM25 noise intrusion, embedding blind spot, topic-match over answer-match, compound query smearing, cross-paper attribution, evaluator OR-bug) are now fully characterized at chunk level. Per-query routing requires this taxonomy as the dispatch table.
+2. **Score-fusion direction is closed** (Lesson 22): α-sweep proved no measurable improvement from RRF + cross-encoder weighted fusion. Continuing to tune retrieval-side weights is unproductive; the lever is on the query side and the generation/judge side.
+3. **Evaluator is now trustworthy** (Lesson 31 fix): with the OR-bug fixed and the +1-question gain reproduced under HyDE+rerank with std=0, downstream method comparisons can be trusted at the ±1 question resolution.
+
+### Planned Experiments
+
+**Exp O — LLM-as-Judge metric**
+- *Hypothesis*: replacing `check_keyword_hit` with an LLM judge prompt removes the synonym-handling fragility that took 11 days to discover (Lesson 31). LLM-judge should also better detect Q13-style cases where the LLM hallucinates a correct answer from parametric memory without retrieval support.
+- *Method*: GPT-4o-mini judge with rubric prompt over (question, expected_answer, generated_answer, retrieved_chunks). Compare judge verdicts against current keyword_hit on the 30q set; investigate disagreements as either evaluator improvements or new failure modes.
+- *Expected effort*: 2–3 days, mostly in prompt iteration and judge-noise audit (Day 10's reproducibility methodology applied to the judge itself).
+
+**Exp P — Query intent classifier + conditional retrieval**
+- *Hypothesis*: dispatching queries by category (single_fact / multi_chunk / cross_paper) to category-specific retrieval configs outperforms a global config. Concretely: single_fact uses narrow chunks + high rerank weight; cross_paper uses wider chunks + larger k + per-paper diversity constraint; multi_chunk uses medium chunks + larger candidate pool.
+- *Method*: GPT-4o-mini classifier on each query (single LLM call, ~$0.0001/query). Per-category retrieval configs derived from existing chunk-level failure analysis. Compare per-category and overall metrics against the current uniform config (HyDE+rerank, 21/30).
+- *Expected effort*: 3–5 days. Risk: 30 questions per category split is ~10 each, statistical power is low. May need eval set expansion to 60–90 questions before drawing per-category conclusions.
+
+**Exp Q — LLM listwise reranker**
+- *Hypothesis*: cross-encoder is pointwise — it scores each (query, chunk) pair independently and cannot reason about set-level coverage. For cross_paper queries (e.g., "compare InstructGPT and Llama2 on RLHF"), a listwise LLM reranker that sees all candidates simultaneously can enforce coverage of multiple papers, while pointwise cross-encoder tends to fill top-k from the dominant paper.
+- *Method*: RankGPT-style prompt with all 20 hybrid+rerank candidates and the query, asking for ranking output. Compare against current cross-encoder baseline on cross_paper queries specifically (Q28, Q29, Q30 plus any expansion). Latency / cost trade-off documented.
+- *Expected effort*: 1–2 weeks, with the hard part being robust output parsing (LLM occasionally drops candidates or outputs malformed rankings).
+
+**Exp R — Domain LoRA on cross-encoder**
+- *Hypothesis*: the topic-match over answer-match failure mode (Lesson 26, Q08-class) is a distribution shift between MS MARCO (where the model was trained) and academic-paper retrieval. Fine-tuning the cross-encoder on in-domain (query, positive_chunk_with_answer_token, hard_negative_topic_match_chunks) triplets should rebalance the preference toward answer-token presence.
+- *Method*: hard-negative mining from existing hybrid k=20 recall (~5–10 hard negatives per question = 150–300 triplets from 30 questions); GPT-4 synthetic query generation against existing chunks to expand to ~100 query bank (~3000 triplets total); LoRA rank=8–16 on q_proj and v_proj of `ms-marco-MiniLM-L-6-v2`; 5-fold CV.
+- *Expected effort*: 2–3 weeks. Highest implementation cost, lowest near-term certainty (domain LoRA can underperform if synthetic data quality is uncontrolled).
+
+### Sequencing Rationale
+
+Exp O (judge) is first because every downstream experiment's metric depends on it; the +1-question resolution under the current evaluator is the bottleneck for trusting Exp P/Q/R results.
+
+Exp P (intent routing) is second because it requires no model training, only prompt + config work, and directly tests the Lesson 16 hypothesis that has been pending since Day 9.
+
+Exp Q (listwise rerank) is third because it has clear hypothesis but high latency / cost; only worth pursuing if Exp P confirms that cross_paper queries are indeed under-served.
+
+Exp R (LoRA) is last because it has the highest implementation cost and the most uncertainty (synthetic-data-quality-dependent). It targets the same Q08-class failures that Exp Q may already address at lower cost.
+
+### Methodological Continuity
+
+All four experiments inherit the established protocol from Days 10–12: 3-run reproducibility per config, std reported alongside means, chunk-level inspection on every newly failing question, evaluator unit tests added before drawing conclusions. The Lesson 32 principle — methodological rigor must include the evaluator itself — applies recursively: Exp O's judge is itself an evaluator that must be audited before it can be trusted to evaluate other experiments.
+
 **Resolution**: The Q14 example is removed. The general AND-mode
 misattribution risk remains valid as a known evaluator limitation, but no
 unverified anchor is provided.

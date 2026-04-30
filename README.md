@@ -148,6 +148,29 @@ To retrace the project's reasoning:
 4. `experiment_log.md` Day 13 — audit corrections (current state).
 5. `error_analysis_report.md` — cross-cutting failure-mode taxonomy.
 
+## Industry Mapping
+
+This project is a small-scale academic exploration, but each component maps to a real industrial RAG / search-ranking concern:
+
+| Project Component | Industrial Counterpart |
+|---|---|
+| Hybrid retrieval (BM25 + vector + RRF) | Multi-channel recall: text + dense retrieval fusion |
+| Cross-encoder reranking | Fine-ranking layer: DNN ranker / cross-encoder |
+| HyDE query rewriting | Query understanding / rewriting module |
+| Reproducibility audit + noise floor (Lesson 21) | A/B test variance analysis before claiming improvement |
+| Topic-match over answer-match (Lesson 26) | Reranker domain shift in vertical search (medical, legal, finance) |
+| Negative result on score fusion (α-sweep, Lesson 22) | Avoiding redundant signal stacking across recall and ranking layers |
+| Stratified evaluation (single_fact / multi_chunk / cross_paper) | Per-segment metric reporting to avoid average-masking weaknesses |
+
+The methodology lessons (noise floor, stratified evaluation, evaluator unit-testing — Lessons 21, 23, 32) generalize to any LLM-based ranking system facing distribution shift and metric-noise issues.
+
+## Roadmap
+
+- **Exp O — LLM-as-Judge replacing keyword_hit**: replace character-level keyword matching with LLM judge to handle synonyms and semantic equivalence; expected to remove the false-negative class identified in Lesson 31.
+- **Exp P — LLM intent classifier + conditional routing**: classify queries into single_fact / multi_chunk / cross_paper, dispatch to retrieval configs tuned per category (Lesson 16's query-conditional retrieval, finally implementable now that the failure-mode taxonomy is stable).
+- **Exp Q — LLM listwise reranker**: replace pointwise cross-encoder with LLM-driven listwise rerank (RankGPT-style) for cross-paper queries that need set-level coverage rather than per-chunk relevance.
+- **Exp R — Domain LoRA on cross-encoder**: hard-negative mining from hybrid recall + GPT-4-synthesized queries (~3000 triplets) → LoRA fine-tuning of `ms-marco-MiniLM-L-6-v2` to address topic-match over answer-match (Lesson 26).
+
 ## Author
 
 Guangwen Xiong
